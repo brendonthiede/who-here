@@ -18,7 +18,7 @@
   },
   "variables": {
     "location": "[resourceGroup().location]",
-    "appServiceName": "[concat(parameters('appServiceShortName'), parameters('jisEnvironment'))]"
+    "appServiceName": "[concat(parameters('appServiceShortName'), '-', parameters('jisEnvironment'))]"
   },
   "resources": [
     {
