@@ -22,7 +22,7 @@ namespace WhoIs.At.JIS.Controllers
     [HttpPost]
     public ActionResult<string> Post([FromForm] SlashCommandPayload slashCommandPayload)
     {
-      return $"You sent me: {slashCommandPayload.text}";
+      return "You should set up your profile in <a href='https://delve-gcc.office.com'>SharePoint</a>";
     }
   }
 }
