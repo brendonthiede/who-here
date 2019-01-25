@@ -20,9 +20,13 @@ namespace WhoIs.At.JIS.Controllers
 
     // POST api/slack
     [HttpPost]
-    public ActionResult<string> Post([FromForm] SlashCommandPayload slashCommandPayload)
+    [Produces("application/json")]
+    public ActionResult<SlackResponse> Post([FromForm] SlashCommandPayload slashCommandPayload)
     {
-      return "You should set up your profile at https://delve-gcc.office.com";
+      return new SlackResponse {
+        response_type = "ephemeral",
+        text = "Make sure your profile is up to date at https://delve-gcc.office.com"
+      };
     }
   }
 }
