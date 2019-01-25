@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using WhoIs.At.JIS.Models;
 
 namespace WhoIs.At.JIS.Controllers
 {
@@ -19,9 +20,9 @@ namespace WhoIs.At.JIS.Controllers
 
     // POST api/slack
     [HttpPost]
-    public ActionResult<string> Post([FromBody] string value)
+    public ActionResult<string> Post([FromForm] SlashCommandPayload slashCommandPayload)
     {
-      return $"You sent me: {value}";
+      return $"You sent me: {slashCommandPayload.text}";
     }
   }
 }
