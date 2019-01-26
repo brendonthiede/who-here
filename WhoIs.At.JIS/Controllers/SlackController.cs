@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using WhoIs.At.JIS.Models;
+using WhoIs.At.JIS.Helpers;
 
 namespace WhoIs.At.JIS.Controllers
 {
@@ -19,7 +20,7 @@ namespace WhoIs.At.JIS.Controllers
     [HttpGet]
     public ActionResult<string> Get()
     {
-      return "You should set up your profile in <a href='https://delve-gcc.office.com'>SharePoint</a>";
+      return "This API only accepts posts in the format of a Slack Slash Command";
     }
 
     // POST api/slack
@@ -40,8 +41,41 @@ namespace WhoIs.At.JIS.Controllers
       await httpClient.PostAsJsonAsync(slashCommandPayload.response_url, new SlackResponse
       {
         response_type = "ephemeral",
-        text = $"You sent me the text {slashCommandPayload.text}"
+        text = EvaluateSlackCommand(slashCommandPayload)
       });
+    }
+
+    static string EvaluateSlackCommand(SlashCommandPayload slashCommandPayload)
+    {
+      WhoIsCommand command = SlashCommandHandler.getCommandFromString(slashCommandPayload.text);
+      if (command.command.Equals("email")) {
+        return SlashCommandHandler.getMsGraphResultsForEmail(command.parameters[0]);
+      }
+      if (command.command.Equals("name")) {
+        var startsWith = string.Join(' ', command.parameters);
+        var matches = SlashCommandHandler.getMsGraphResultsForName(startsWith);
+        if (matches.Count.Equals(0)) {
+          return $"No names could be found starting with {startsWith}\nMake sure you provide names in the format of <first> <last>";
+        }
+        return string.Join('\n', matches.ToArray());
+      }
+      return @"Available commands:
+  `help`: showsthis message
+  `email <email@courts.mi.gov>`: shows information for the given email address
+  `name <search text>`: shows the first 10 matches where the display name (formatted as <first> <last>) starts with the search text";
+    }
+
+    static bool isEmail(string potentialEmail)
+    {
+      try
+      {
+        var addr = new System.Net.Mail.MailAddress(potentialEmail);
+        return addr.Address == potentialEmail;
+      }
+      catch
+      {
+        return false;
+      }
     }
   }
 }
