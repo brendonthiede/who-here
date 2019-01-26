@@ -64,18 +64,5 @@ namespace WhoIs.At.JIS.Controllers
   `email <email@courts.mi.gov>`: shows information for the given email address
   `name <search text>`: shows the first 10 matches where the display name (formatted as <first> <last>) starts with the search text";
     }
-
-    static bool isEmail(string potentialEmail)
-    {
-      try
-      {
-        var addr = new System.Net.Mail.MailAddress(potentialEmail);
-        return addr.Address == potentialEmail;
-      }
-      catch
-      {
-        return false;
-      }
-    }
   }
 }
