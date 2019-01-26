@@ -37,7 +37,7 @@ namespace WhoIs.At.JIS.Controllers
     public ActionResult<SlackResponse> Post([FromForm] SlashCommandPayload slashCommandPayload, [FromQuery]string apiKey)
     {
       var responseUrl = new Uri(slashCommandPayload.response_url);
-      if (!responseUrl.Host.Equals("api.slack.com"))
+      if (!responseUrl.Host.Equals("hooks.slack.com"))
       {
         return new SlackResponse
         {
