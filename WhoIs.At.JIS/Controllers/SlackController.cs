@@ -23,16 +23,33 @@ namespace WhoIs.At.JIS.Controllers
       return "This API only accepts posts in the format of a Slack Slash Command";
     }
 
+    // GET api/slack/help
+    [HttpGet]
+    [Route("help")]
+    public ActionResult<string> GetHelp()
+    {
+      return SlashCommandHandler.getHelpMessage();
+    }
+
     // POST api/slack
     [HttpPost]
     [Produces("application/json")]
-    public ActionResult<SlackResponse> Post([FromForm] SlashCommandPayload slashCommandPayload)
+    public ActionResult<SlackResponse> Post([FromForm] SlashCommandPayload slashCommandPayload, [FromQuery]string apiKey)
     {
+      var responseUrl = new Uri(slashCommandPayload.response_url);
+      if (!responseUrl.Host.Equals("api.slack.com"))
+      {
+        return new SlackResponse
+        {
+          response_type = "ephemeral",
+          text = $"The host {responseUrl.Host} is not allowed"
+        };
+      }
       RespondToSlack(slashCommandPayload);
       return new SlackResponse
       {
         response_type = "ephemeral",
-        text = "Make sure your profile is up to date at https://delve-gcc.office.com"
+        text = $"Make sure your profile is up to date at https://delve-gcc.office.com {apiKey}"
       };
     }
 
@@ -48,21 +65,21 @@ namespace WhoIs.At.JIS.Controllers
     static string EvaluateSlackCommand(SlashCommandPayload slashCommandPayload)
     {
       WhoIsCommand command = SlashCommandHandler.getCommandFromString(slashCommandPayload.text);
-      if (command.command.Equals("email")) {
+      if (command.command.Equals("email"))
+      {
         return SlashCommandHandler.getMsGraphResultsForEmail(command.parameters[0]);
       }
-      if (command.command.Equals("name")) {
+      if (command.command.Equals("name"))
+      {
         var startsWith = string.Join(' ', command.parameters);
         var matches = SlashCommandHandler.getMsGraphResultsForName(startsWith);
-        if (matches.Count.Equals(0)) {
+        if (matches.Count.Equals(0))
+        {
           return $"No names could be found starting with {startsWith}\nMake sure you provide names in the format of <first> <last>";
         }
         return string.Join('\n', matches.ToArray());
       }
-      return @"Available commands:
-  `help`: showsthis message
-  `email <email@courts.mi.gov>`: shows information for the given email address
-  `name <search text>`: shows the first 10 matches where the display name (formatted as <first> <last>) starts with the search text";
+      return SlashCommandHandler.getHelpMessage();
     }
   }
 }

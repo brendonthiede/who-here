@@ -13,6 +13,14 @@ namespace WhoIs.At.JIS.Helpers
     static List<string> VALID_COMMANDS = new List<string> { "help", "email", "name" };
     static string[] CONFIG_VARIABLES = new string[] { "applicationId", "applicationSecret", "redirectUri", "tenantId", "domain" };
 
+    public static string getHelpMessage()
+    {
+      return @"Available commands:
+  `help`: showsthis message
+  `email <email@courts.mi.gov>`: shows information for the given email address
+  `name <search text>`: shows the first 10 matches where the display name (formatted as <first> <last>) starts with the search text";
+    }
+
     public static bool isValidCommand(string command)
     {
       return VALID_COMMANDS.Contains(command);
@@ -144,6 +152,5 @@ namespace WhoIs.At.JIS.Helpers
       var cca = new ConfidentialClientApplication(clientId, authority, redirectUri, new ClientCredential(clientSecret), null, null);
       return new MsalAuthenticationProvider(cca, scopes.ToArray());
     }
-
   }
 }
