@@ -34,7 +34,7 @@ namespace WhoIs.At.JIS.Controllers
     // POST api/slack
     [HttpPost]
     [Produces("application/json")]
-    public ActionResult<SlackResponse> Post([FromForm] SlashCommandPayload slashCommandPayload, [FromQuery]string apiKey)
+    public ActionResult<SlackResponse> Post([FromForm] SlashCommandPayload slashCommandPayload)
     {
       var responseUrl = new Uri(slashCommandPayload.response_url);
       if (!responseUrl.Host.Equals("hooks.slack.com"))
@@ -49,7 +49,7 @@ namespace WhoIs.At.JIS.Controllers
       return new SlackResponse
       {
         response_type = "ephemeral",
-        text = $"Make sure your profile is up to date at https://delve-gcc.office.com {apiKey}"
+        text = $">Make sure your profile is up to date at https://delve-gcc.office.com"
       };
     }
 
