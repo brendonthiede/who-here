@@ -2,3 +2,4 @@ obj/
 bin/
 .vs/
 appsettings.json
+snapShot.json
