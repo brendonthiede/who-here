@@ -16,7 +16,7 @@ namespace WhoIs.At.JIS.Helpers
   public static class SlashCommandHandler
   {
     static bool isUpdating = false;
-    static List<string> VALID_COMMANDS = new List<string> { "help", "email", "name", "skillslist", "withskill", "interestslist", "withinterest", "projectslist", "withproject" };
+    static List<string> VALID_COMMANDS = new List<string> { "debug", "help", "email", "name", "skillslist", "withskill", "interestslist", "withinterest", "projectslist", "withproject" };
     static string[] CONFIG_VARIABLES = new string[] { "applicationId", "applicationSecret", "redirectUri", "tenantId", "domain" };
     static string CACHE_FILE = "snapShot.json";
 

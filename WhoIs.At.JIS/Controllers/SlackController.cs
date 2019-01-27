@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 using WhoIs.At.JIS.Models;
 using WhoIs.At.JIS.Helpers;
 
@@ -71,7 +72,7 @@ namespace WhoIs.At.JIS.Controllers
           text = $"The host {responseUrl.Host} is not allowed"
         };
       }
-      RespondToSlack(slashCommandPayload);
+      RespondToSlack(slashCommandPayload, this.Request.QueryString);
       return new SlackResponse
       {
         response_type = "ephemeral",
@@ -79,18 +80,21 @@ namespace WhoIs.At.JIS.Controllers
       };
     }
 
-    static async void RespondToSlack(SlashCommandPayload slashCommandPayload)
+    static async void RespondToSlack(SlashCommandPayload slashCommandPayload, QueryString queryString)
     {
       await httpClient.PostAsJsonAsync(slashCommandPayload.response_url, new SlackResponse
       {
         response_type = "ephemeral",
-        text = EvaluateSlackCommand(slashCommandPayload)
+        text = EvaluateSlackCommand(slashCommandPayload, queryString)
       });
     }
 
-    static string EvaluateSlackCommand(SlashCommandPayload slashCommandPayload)
+    static string EvaluateSlackCommand(SlashCommandPayload slashCommandPayload, QueryString queryString)
     {
       WhoIsCommand command = SlashCommandHandler.getCommandFromString(slashCommandPayload.text);
+      if (command.command.Equals("debug")) {
+        return queryString.ToString();
+      }
       if (command.command.Equals("email"))
       {
         return SlashCommandHandler.getMsGraphResultsForEmail(command.parameters[0]);
