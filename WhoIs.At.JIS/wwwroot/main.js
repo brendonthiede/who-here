@@ -1,3 +1,7 @@
+function updateCache () {
+  fetch('/api/slack/updatecache');
+}
+
 function populateHelpText () {
   fetch('/api/slack/help')
     .then(function (response) {
@@ -9,4 +13,5 @@ function populateHelpText () {
     });
 }
 
+updateCache();
 populateHelpText();
