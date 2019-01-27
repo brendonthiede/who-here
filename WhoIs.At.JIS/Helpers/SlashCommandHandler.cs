@@ -206,17 +206,17 @@ namespace WhoIs.At.JIS.Helpers
       var pastProjects = new List<string>(user.pastProjects);
       if (pastProjects.Count > 0)
       {
-        profileData += $"\nProjects:\n* {string.Join("\n* ", user.pastProjects)}";
+        profileData += $"\n_Projects:_ {string.Join(" ", user.pastProjects)}";
       }
       var skills = new List<string>(user.skills);
       if (skills.Count > 0)
       {
-        profileData += $"\nSkills:\n* {string.Join("\n* ", user.skills)}";
+        profileData += $"\n_Skills:_ {string.Join(" ", user.skills)}";
       }
       var interests = new List<string>(user.interests);
       if (interests.Count > 0)
       {
-        profileData += $"\nInterests:\n* {string.Join("\n* ", user.interests)}";
+        profileData += $"\n_Interests:_ {string.Join(" ", user.interests)}";
       }
       return profileData;
 
