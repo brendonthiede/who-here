@@ -72,7 +72,7 @@ namespace WhoIs.At.JIS.Controllers
           text = $"The host {responseUrl.Host} is not allowed"
         };
       }
-      RespondToSlack(slashCommandPayload, this.Request.QueryString);
+      RespondToSlack(slashCommandPayload);
       return new SlackResponse
       {
         response_type = "ephemeral",
@@ -80,20 +80,20 @@ namespace WhoIs.At.JIS.Controllers
       };
     }
 
-    static async void RespondToSlack(SlashCommandPayload slashCommandPayload, QueryString queryString)
+    static async void RespondToSlack(SlashCommandPayload slashCommandPayload)
     {
       await httpClient.PostAsJsonAsync(slashCommandPayload.response_url, new SlackResponse
       {
         response_type = "ephemeral",
-        text = EvaluateSlackCommand(slashCommandPayload, queryString)
+        text = EvaluateSlackCommand(slashCommandPayload)
       });
     }
 
-    static string EvaluateSlackCommand(SlashCommandPayload slashCommandPayload, QueryString queryString)
+    static string EvaluateSlackCommand(SlashCommandPayload slashCommandPayload)
     {
       WhoIsCommand command = SlashCommandHandler.getCommandFromString(slashCommandPayload.text);
       if (command.command.Equals("debug")) {
-        return queryString.ToString();
+        return $"{slashCommandPayload.token}\n{slashCommandPayload.team_id}\n{slashCommandPayload.team_domain}\n{slashCommandPayload.enterprise_id}\n{slashCommandPayload.enterprise_name}";
       }
       if (command.command.Equals("email"))
       {
