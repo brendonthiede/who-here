@@ -93,7 +93,7 @@ namespace WhoIs.At.JIS.Controllers
     {
       WhoIsCommand command = SlashCommandHandler.getCommandFromString(slashCommandPayload.text);
       if (command.command.Equals("debug")) {
-        return $"{slashCommandPayload.token}\n{slashCommandPayload.team_id}\n{slashCommandPayload.team_domain}\n{slashCommandPayload.enterprise_id}\n{slashCommandPayload.enterprise_name}";
+        return "";
       }
       if (command.command.Equals("email"))
       {
