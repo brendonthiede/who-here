@@ -47,15 +47,29 @@ namespace WhoIs.At.JIS.Tests
     }
 
     [Fact]
-    public void TestGetAnkush()
+    public void TestGetSkillList()
     {
-      Assert.Equal("Ankush Parab - ParabA@courts.mi.gov", SlashCommandHandler.getMsGraphResultsForName("Ankush Pa")[0]);
+      var cachedUsers = SlashCommandHandler.getCachedUsers($"{System.Environment.CurrentDirectory}\\..\\..\\..\\snapShot.json");
+      var skills = SlashCommandHandler.getSkillsList(cachedUsers);
+      Console.WriteLine(string.Join("\n", skills));
+      Assert.Equal(9, skills.Count);
+      Assert.Contains("Database Administration", skills);
+      Assert.Contains("DevOps", skills);
+      Assert.Contains("JavaScript", skills);
+      Assert.Contains("Functional Programming", skills);
+      Assert.Contains("agile", skills);
+      Assert.Contains("Scrum", skills);
+      Assert.Contains("Kanban", skills);
+      Assert.Contains("SAFe", skills);
+      Assert.Contains("Troubleshooting", skills);
     }
 
     [Fact]
-    public void TestGetAnkushByEmail()
+    public void TestGetUsersWithSkill()
     {
-      Assert.Equal("Ankush Parab - ParabA@courts.mi.gov", SlashCommandHandler.getMsGraphResultsForEmail("ParabA@courts.mi.gov"));
+      var cachedUsers = SlashCommandHandler.getCachedUsers($"{System.Environment.CurrentDirectory}\\..\\..\\..\\snapShot.json");
+      var users = SlashCommandHandler.getUsersWithSkill(cachedUsers, "DevOps");
+      Assert.Equal(2, users.Count);
     }
   }
 }
