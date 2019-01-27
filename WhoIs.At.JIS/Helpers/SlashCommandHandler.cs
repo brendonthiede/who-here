@@ -202,7 +202,7 @@ namespace WhoIs.At.JIS.Helpers
     }
 
     public static string formatUserForSlack(GraphUser user){
-      var profileData = $"{user.displayName}\n{user.jobTitle}\n{user.userPrincipalName}";
+      var profileData = $"*{user.displayName}*\n{user.jobTitle}\n{user.userPrincipalName}";
       if (!string.IsNullOrEmpty(user.aboutMe))
       {
         profileData += $"\n>{user.aboutMe}";
@@ -262,6 +262,11 @@ namespace WhoIs.At.JIS.Helpers
       return graphUsers.Where(user => user.pastProjects.Contains(project, StringComparer.InvariantCultureIgnoreCase)).ToList();
     }
 
+    public static List<string> getProjectsList()
+    {
+      return getProjectsList(getCachedUsers());
+    }
+
     public static List<string> getProjectsList(List<GraphUser> graphUsers)
     {
       var dict = new Dictionary<string, string>();
@@ -273,6 +278,11 @@ namespace WhoIs.At.JIS.Helpers
         }
       }
       return dict.Values.ToList();
+    }
+
+    public static List<string> getInterestsList()
+    {
+      return getInterestsList(getCachedUsers());
     }
 
     public static List<string> getInterestsList(List<GraphUser> graphUsers)
