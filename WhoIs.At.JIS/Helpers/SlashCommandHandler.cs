@@ -218,15 +218,15 @@ namespace WhoIs.At.JIS.Helpers
       }
       var pastProjects = new List<string>(graphResult.PastProjects);
       if (pastProjects.Count > 0) {
-        profileData += $"\nProjects:\n  {string.Join("\n  ", graphResult.PastProjects)}";
+        profileData += $"\nProjects:\n* {string.Join("\n* ", graphResult.PastProjects)}";
       }
       var skills = new List<string>(graphResult.Skills);
       if (skills.Count > 0) {
-        profileData += $"\nSkills:\n  {string.Join("\n  ", graphResult.Skills)}";
+        profileData += $"\nSkills:\n* {string.Join("\n* ", graphResult.Skills)}";
       }
       var interests = new List<string>(graphResult.Interests);
       if (interests.Count > 0) {
-        profileData += $"\nInterests:\n  {string.Join("\n  ", graphResult.Interests)}";
+        profileData += $"\nInterests:\n* {string.Join("\n* ", graphResult.Interests)}";
       }
       return profileData;
     }
