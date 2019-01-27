@@ -25,7 +25,7 @@ namespace WhoIs.At.JIS.Helpers
       return @"Available commands:
   `help`: showsthis message
   `email <email@courts.mi.gov>`: shows information for the given email address
-  `name <search text>`: shows the first 10 matches where the display name (formatted as <first> <last>) starts with the search text
+  `name <search text>`: shows matches where the display name (formatted as <first> <last>) starts with the search text
   `projectslist`: shows a list of all projects that any users have identified
   `withproject <project>`: shows all users that have identified the given project in their profile
   `interestslist`: shows a list of all interests that any users have identified
@@ -201,7 +201,8 @@ namespace WhoIs.At.JIS.Helpers
       return dict.Values.ToList();
     }
 
-    public static string formatUserForSlack(GraphUser user){
+    public static string formatUserForSlack(GraphUser user)
+    {
       var profileData = $"*{user.displayName}*\n{user.jobTitle}\n{user.userPrincipalName}";
       if (!string.IsNullOrEmpty(user.aboutMe))
       {
@@ -210,17 +211,17 @@ namespace WhoIs.At.JIS.Helpers
       var pastProjects = new List<string>(user.pastProjects);
       if (pastProjects.Count > 0)
       {
-        profileData += $"\n_Projects:_ {string.Join(" ", user.pastProjects)}";
+        profileData += $"\n_Projects:_ {string.Join(", ", user.pastProjects)}";
       }
       var skills = new List<string>(user.skills);
       if (skills.Count > 0)
       {
-        profileData += $"\n_Skills:_ {string.Join(" ", user.skills)}";
+        profileData += $"\n_Skills:_ {string.Join(", ", user.skills)}";
       }
       var interests = new List<string>(user.interests);
       if (interests.Count > 0)
       {
-        profileData += $"\n_Interests:_ {string.Join(" ", user.interests)}";
+        profileData += $"\n_Interests:_ {string.Join(", ", user.interests)}";
       }
       return profileData;
 
@@ -317,7 +318,7 @@ namespace WhoIs.At.JIS.Helpers
       GraphServiceClient graphClient = GetAuthenticatedGraphClient(getAuthConfig());
       List<QueryOption> options = new List<QueryOption>
         {
-            new QueryOption("$top", "10"),
+            new QueryOption("$top", "100"),
             new QueryOption("$filter", $"startsWith(displayName,'{name}')")
         };
 
@@ -325,7 +326,11 @@ namespace WhoIs.At.JIS.Helpers
       var retVal = new List<string>();
       foreach (var result in graphResult)
       {
-        retVal.Add($"{result.DisplayName} - {result.JobTitle} - {result.Mail}");
+        if (!string.IsNullOrEmpty(result.JobTitle) && isValidEmail(result.Mail, "courts.mi.gov"))
+        {
+          retVal.Add($"{result.DisplayName} - {result.JobTitle} - {result.Mail}");
+
+        }
       }
       return retVal;
     }
