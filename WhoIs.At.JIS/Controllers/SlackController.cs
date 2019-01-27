@@ -105,6 +105,19 @@ namespace WhoIs.At.JIS.Controllers
         }
         return string.Join('\n', matches.ToArray());
       }
+      if (command.command.Equals("skillslist"))
+      {
+        return string.Join('\n', SlashCommandHandler.getSkillsList());
+      }
+      if (command.command.Equals("withskill"))
+      {
+        var skill = string.Join(" ", command.parameters);
+        if (string.IsNullOrEmpty(skill))
+        {
+          return "You need to provide a skill: /whois-at-jis withskill DevOps";
+        }
+        return string.Join('\n', SlashCommandHandler.formatUserListForSlack(SlashCommandHandler.getUsersWithSkill(skill)));
+      }
       return SlashCommandHandler.getHelpMessage();
     }
   }

@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using System.Threading.Tasks;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 
 namespace WhoIs.At.JIS.Helpers
 {
@@ -15,15 +16,18 @@ namespace WhoIs.At.JIS.Helpers
   public static class SlashCommandHandler
   {
     static bool isUpdating = false;
-    static List<string> VALID_COMMANDS = new List<string> { "help", "email", "name" };
+    static List<string> VALID_COMMANDS = new List<string> { "help", "email", "name", "skillslist", "withskill" };
     static string[] CONFIG_VARIABLES = new string[] { "applicationId", "applicationSecret", "redirectUri", "tenantId", "domain" };
+    static string CACHE_FILE = "snapShot.json";
 
     public static string getHelpMessage()
     {
       return @"Available commands:
   `help`: showsthis message
   `email <email@courts.mi.gov>`: shows information for the given email address
-  `name <search text>`: shows the first 10 matches where the display name (formatted as <first> <last>) starts with the search text";
+  `name <search text>`: shows the first 10 matches where the display name (formatted as <first> <last>) starts with the search text
+  `skillslist`: shows a list of all skills that any users have identified
+  `withskill <skill>`: shows all users that have identified the given skill in their profile";
     }
 
     public static bool isValidCommand(string command)
@@ -44,7 +48,6 @@ namespace WhoIs.At.JIS.Helpers
         if (String.IsNullOrEmpty(domain))
         {
           return addr.Address == email;
-
         }
         else
         {
@@ -148,7 +151,7 @@ namespace WhoIs.At.JIS.Helpers
           string json = JsonConvert.SerializeObject(allUsers.ToArray());
 
           //write string to file
-          System.IO.File.WriteAllText("snapShot.json", json);
+          System.IO.File.WriteAllText(CACHE_FILE, json);
           watch.Stop();
           Console.WriteLine($"*** Update ran for {watch.Elapsed.TotalSeconds.ToString()} seconds");
           isUpdating = false;
@@ -162,12 +165,103 @@ namespace WhoIs.At.JIS.Helpers
 
     public static List<GraphUser> getCachedUsers()
     {
-      using (StreamReader r = new StreamReader("snapShot.json"))
+      return getCachedUsers(CACHE_FILE);
+
+    }
+
+    public static List<GraphUser> getCachedUsers(string filePath)
+    {
+      using (StreamReader r = new StreamReader(filePath))
       {
         string json = r.ReadToEnd();
         return JsonConvert.DeserializeObject<List<GraphUser>>(json);
       }
 
+    }
+
+    public static List<string> getSkillsList()
+    {
+      return getSkillsList(getCachedUsers());
+    }
+
+    public static List<string> getSkillsList(List<GraphUser> graphUsers)
+    {
+      var dict = new Dictionary<string, string>();
+      foreach (var graphUser in graphUsers)
+      {
+        foreach (var skill in graphUser.skills)
+        {
+          dict[skill] = skill;
+        }
+      }
+      return dict.Values.ToList();
+    }
+
+    public static string formatUserForSlack(GraphUser user){
+      var profileData = $"{user.displayName}\n{user.jobTitle}\n{user.userPrincipalName}";
+      if (!string.IsNullOrEmpty(user.aboutMe))
+      {
+        profileData += $"\n>{user.aboutMe}";
+      }
+      var pastProjects = new List<string>(user.pastProjects);
+      if (pastProjects.Count > 0)
+      {
+        profileData += $"\nProjects:\n* {string.Join("\n* ", user.pastProjects)}";
+      }
+      var skills = new List<string>(user.skills);
+      if (skills.Count > 0)
+      {
+        profileData += $"\nSkills:\n* {string.Join("\n* ", user.skills)}";
+      }
+      var interests = new List<string>(user.interests);
+      if (interests.Count > 0)
+      {
+        profileData += $"\nInterests:\n* {string.Join("\n* ", user.interests)}";
+      }
+      return profileData;
+
+    }
+
+    public static string formatUserListForSlack(List<GraphUser> users)
+    {
+      List<string> details = users.Select(user => formatUserForSlack(user)).ToList();
+      return string.Join("\n==========\n", details);
+    }
+
+    public static List<GraphUser> getUsersWithSkill(string skill)
+    {
+      return getUsersWithSkill(getCachedUsers(), skill);
+    }
+
+    public static List<GraphUser> getUsersWithSkill(List<GraphUser> graphUsers, string skill)
+    {
+      return graphUsers.Where(user => user.skills.Contains(skill, StringComparer.InvariantCultureIgnoreCase)).ToList();
+    }
+
+    public static List<string> getProjectsList(List<GraphUser> graphUsers)
+    {
+      var dict = new Dictionary<string, string>();
+      foreach (var graphUser in graphUsers)
+      {
+        foreach (var project in graphUser.pastProjects)
+        {
+          dict[project] = project;
+        }
+      }
+      return dict.Values.ToList();
+    }
+
+    public static List<string> getInterestsList(List<GraphUser> graphUsers)
+    {
+      var dict = new Dictionary<string, string>();
+      foreach (var graphUser in graphUsers)
+      {
+        foreach (var interest in graphUser.interests)
+        {
+          dict[interest] = interest;
+        }
+      }
+      return dict.Values.ToList();
     }
 
     private static GraphUser asGraphUser(User user)
@@ -212,23 +306,7 @@ namespace WhoIs.At.JIS.Helpers
         };
 
       var graphResult = graphClient.Users[email].Request(options).GetAsync().Result;
-      var profileData = $"{graphResult.DisplayName}\n{graphResult.JobTitle}\n{graphResult.Mail}";
-      if (!string.IsNullOrEmpty(graphResult.AboutMe)) {
-        profileData += $"\n>{graphResult.AboutMe}";
-      }
-      var pastProjects = new List<string>(graphResult.PastProjects);
-      if (pastProjects.Count > 0) {
-        profileData += $"\nProjects:\n* {string.Join("\n* ", graphResult.PastProjects)}";
-      }
-      var skills = new List<string>(graphResult.Skills);
-      if (skills.Count > 0) {
-        profileData += $"\nSkills:\n* {string.Join("\n* ", graphResult.Skills)}";
-      }
-      var interests = new List<string>(graphResult.Interests);
-      if (interests.Count > 0) {
-        profileData += $"\nInterests:\n* {string.Join("\n* ", graphResult.Interests)}";
-      }
-      return profileData;
+      return formatUserForSlack(asGraphUser(graphResult));
     }
 
     private static Dictionary<string, string> getAuthConfig()
