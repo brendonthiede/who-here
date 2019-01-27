@@ -16,7 +16,7 @@ namespace WhoIs.At.JIS.Helpers
   public static class SlashCommandHandler
   {
     static bool isUpdating = false;
-    static List<string> VALID_COMMANDS = new List<string> { "help", "email", "name", "skillslist", "withskill" };
+    static List<string> VALID_COMMANDS = new List<string> { "help", "email", "name", "skillslist", "withskill", "interestslist", "withinterest", "projectslist", "withproject" };
     static string[] CONFIG_VARIABLES = new string[] { "applicationId", "applicationSecret", "redirectUri", "tenantId", "domain" };
     static string CACHE_FILE = "snapShot.json";
 
@@ -26,6 +26,10 @@ namespace WhoIs.At.JIS.Helpers
   `help`: showsthis message
   `email <email@courts.mi.gov>`: shows information for the given email address
   `name <search text>`: shows the first 10 matches where the display name (formatted as <first> <last>) starts with the search text
+  `projectslist`: shows a list of all projects that any users have identified
+  `withproject <project>`: shows all users that have identified the given project in their profile
+  `interestslist`: shows a list of all interests that any users have identified
+  `withinterest <interest>`: shows all users that have identified the given interest in their profile
   `skillslist`: shows a list of all skills that any users have identified
   `withskill <skill>`: shows all users that have identified the given skill in their profile";
     }
@@ -236,6 +240,26 @@ namespace WhoIs.At.JIS.Helpers
     public static List<GraphUser> getUsersWithSkill(List<GraphUser> graphUsers, string skill)
     {
       return graphUsers.Where(user => user.skills.Contains(skill, StringComparer.InvariantCultureIgnoreCase)).ToList();
+    }
+
+    public static List<GraphUser> getUsersWithInterest(string interest)
+    {
+      return getUsersWithInterest(getCachedUsers(), interest);
+    }
+
+    public static List<GraphUser> getUsersWithInterest(List<GraphUser> graphUsers, string interest)
+    {
+      return graphUsers.Where(user => user.interests.Contains(interest, StringComparer.InvariantCultureIgnoreCase)).ToList();
+    }
+
+    public static List<GraphUser> getUsersWithProject(string project)
+    {
+      return getUsersWithProject(getCachedUsers(), project);
+    }
+
+    public static List<GraphUser> getUsersWithProject(List<GraphUser> graphUsers, string project)
+    {
+      return graphUsers.Where(user => user.pastProjects.Contains(project, StringComparer.InvariantCultureIgnoreCase)).ToList();
     }
 
     public static List<string> getProjectsList(List<GraphUser> graphUsers)
