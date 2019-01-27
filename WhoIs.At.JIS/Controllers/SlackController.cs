@@ -20,7 +20,33 @@ namespace WhoIs.At.JIS.Controllers
     [HttpGet]
     public ActionResult<string> Get()
     {
-      return "This API only accepts posts in the format of a Slack Slash Command";
+      return "Silence is golden";
+    }
+
+    // // GET api/slack/allusers
+    // [HttpGet]
+    // [Route("allusers")]
+    // public ActionResult<List<GraphUser>> GetAllUsers()
+    // {
+    //   var users = SlashCommandHandler.getAllMsGraphUsers();
+    //   return users;
+    // }
+
+    // // GET api/slack/cachedusers
+    // [HttpGet]
+    // [Route("cachedusers")]
+    // public ActionResult<List<GraphUser>> GetCachedUsers()
+    // {
+    //   return SlashCommandHandler.getCachedUsers();
+    // }
+
+    // GET api/slack/updatecache
+    [HttpGet]
+    [Route("updatecache")]
+    public ActionResult<string> UpdateCache()
+    {
+      SlashCommandHandler.updateUserCache();
+      return "Update initiated";
     }
 
     // GET api/slack/help
