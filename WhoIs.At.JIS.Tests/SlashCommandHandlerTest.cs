@@ -51,7 +51,7 @@ namespace WhoIs.At.JIS.Tests
       SlashCommandHandler slashCommandHandler = new SlashCommandHandler(null);
       GraphHandler graphHandler = new GraphHandler(null);
       var cachedUsers = graphHandler.getCachedUsers($"{System.Environment.CurrentDirectory}\\..\\..\\..\\testdata.json");
-      var skills = slashCommandHandler.getSkillsList(cachedUsers);
+      var skills = slashCommandHandler.getUniqueValuesForListProperty(cachedUsers, "skills");
       Console.WriteLine(string.Join("\n", skills));
       Assert.Equal(9, skills.Count);
       Assert.Contains("Database Administration", skills);

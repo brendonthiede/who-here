@@ -6,7 +6,7 @@
     "aboutMe": null,
     "interests": [],
     "skills": [],
-    "pastProjects": []
+    "projects": []
   },
   {
     "displayName": "Clyde Reynolds",
@@ -22,7 +22,7 @@
       "DevOps",
       "Database Administration"
     ],
-    "pastProjects": [
+    "projects": [
       "Recycling"
     ]
   },
@@ -33,7 +33,7 @@
     "aboutMe": null,
     "interests": [],
     "skills": [],
-    "pastProjects": []
+    "projects": []
   },
   {
     "displayName": "Larry Gonzalez",
@@ -54,7 +54,7 @@
       "Kanban",
       "SAFe"
     ],
-    "pastProjects": [
+    "projects": [
       "Azure DevOps",
       "SonarQube"
     ]
@@ -68,7 +68,7 @@
     "skills": [
       "Troubleshooting"
     ],
-    "pastProjects": [
+    "projects": [
       "SharePoint"
     ]
   }

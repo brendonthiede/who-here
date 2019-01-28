@@ -174,7 +174,7 @@ namespace WhoIs.At.JIS.Helpers
           aboutMe = user.AboutMe,
           interests = user.Interests,
           skills = user.Skills,
-          pastProjects = user.PastProjects
+          projects = user.PastProjects
         };
 
       }

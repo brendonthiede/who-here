@@ -10,6 +10,6 @@ namespace WhoIs.At.JIS.Models
     public string aboutMe { get; set; }
     public IEnumerable<string> interests { get; set; }
     public IEnumerable<string> skills { get; set; }
-    public IEnumerable<string> pastProjects { get; set; }
+    public IEnumerable<string> projects { get; set; }
   }
 }

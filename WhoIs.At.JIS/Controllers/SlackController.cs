@@ -95,11 +95,28 @@ namespace WhoIs.At.JIS.Controllers
       {
         return "";
       }
+      #region Commands without parameters
+      if (command.command.Equals("help") || !SlashCommandHandler.isValidCommand(command.command))
+      {
+        return _slashCommandHandler.getHelpMessage();
+      }
+      if (command.command.EndsWith("list"))
+      {
+        var listType = command.command.Replace("list", "");
+        return $"_Available {listType}:_ {string.Join(", ", _slashCommandHandler.getUniqueValuesForListProperty(listType))}";
+      }
+      #endregion
+
+      #region Commands with required parameters
+      if (string.IsNullOrEmpty(command.parameters))
+      {
+        return $"You need to provide a search value: /whois-at-jis {command.command} <value>";
+      }
       if (command.command.Equals("email"))
       {
         var email = command.parameters;
         var domain = _graphConfiguration["domain"];
-        if (string.IsNullOrEmpty(email) || !SlashCommandHandler.isValidEmail(email, domain))
+        if (!SlashCommandHandler.isValidEmail(email, domain))
         {
           return $"You must provide a valid email address with the {domain} domain";
         }
@@ -112,21 +129,12 @@ namespace WhoIs.At.JIS.Controllers
       }
       if (command.command.Equals("name"))
       {
-        var startsWith = command.parameters;
-        if (string.IsNullOrEmpty(startsWith))
-        {
-          return "You need to provide a name: /whois-at-jis name Mark";
-        }
-        var users = _slashCommandHandler.getUsersWithName(startsWith);
+        var users = _slashCommandHandler.getUsersWithName(command.parameters);
         if (users.Count.Equals(0))
         {
-          return $"No users found with a name that starts with {startsWith}";
+          return $"No users found with a name that starts with {command.parameters}";
         }
         return string.Join('\n', _slashCommandHandler.formatUserListForSlack(users));
-      }
-      if (command.command.Equals("skillslist"))
-      {
-        return $"_Available skills:_ {string.Join(", ", _slashCommandHandler.getSkillsList())}";
       }
       if (command.command.Equals("withskill"))
       {
@@ -138,13 +146,9 @@ namespace WhoIs.At.JIS.Controllers
         var users = _slashCommandHandler.getUsersWithSkill(skill);
         if (users.Count.Equals(0))
         {
-          return $"No users found with skill {skill}\n_Available skills:_ {string.Join(", ", _slashCommandHandler.getSkillsList())}";
+          return $"No users found with skill {skill}\n_Available skills:_ {string.Join(", ", _slashCommandHandler.getUniqueValuesForListProperty("skills"))}";
         }
         return string.Join('\n', _slashCommandHandler.formatUserListForSlack(users));
-      }
-      if (command.command.Equals("projectslist"))
-      {
-        return $"_Available projects:_ {string.Join(", ", _slashCommandHandler.getProjectsList())}";
       }
       if (command.command.Equals("withproject"))
       {
@@ -156,13 +160,9 @@ namespace WhoIs.At.JIS.Controllers
         var users = _slashCommandHandler.getUsersWithProject(project);
         if (users.Count.Equals(0))
         {
-          return $"No users found with project {project}\n_Available projects:_ {string.Join(", ", _slashCommandHandler.getProjectsList())}";
+          return $"No users found with project {project}\n_Available projects:_ {string.Join(", ", _slashCommandHandler.getUniqueValuesForListProperty("projects"))}";
         }
         return string.Join('\n', _slashCommandHandler.formatUserListForSlack(users));
-      }
-      if (command.command.Equals("interestslist"))
-      {
-        return $"_Available interests:_ {string.Join(", ", _slashCommandHandler.getInterestsList())}";
       }
       if (command.command.Equals("withinterest"))
       {
@@ -174,10 +174,12 @@ namespace WhoIs.At.JIS.Controllers
         var users = _slashCommandHandler.getUsersWithInterest(interest);
         if (users.Count.Equals(0))
         {
-          return $"No users found with interest {interest}\n_Available interests:_ {string.Join(", ", _slashCommandHandler.getInterestsList())}";
+          return $"No users found with interest {interest}\n_Available interests:_ {string.Join(", ", _slashCommandHandler.getUniqueValuesForListProperty("interests"))}";
         }
         return string.Join('\n', _slashCommandHandler.formatUserListForSlack(users));
       }
+      #endregion
+
       return _slashCommandHandler.getHelpMessage();
     }
   }

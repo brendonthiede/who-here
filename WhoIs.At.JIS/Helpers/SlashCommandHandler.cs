@@ -104,10 +104,10 @@ namespace WhoIs.At.JIS.Helpers
       {
         profileData += $"\n>{user.aboutMe}";
       }
-      var pastProjects = new List<string>(user.pastProjects);
-      if (pastProjects.Count > 0)
+      var projects = new List<string>(user.projects);
+      if (projects.Count > 0)
       {
-        profileData += $"\n_Projects:_ {string.Join(", ", user.pastProjects)}";
+        profileData += $"\n_Projects:_ {string.Join(", ", user.projects)}";
       }
       var skills = new List<string>(user.skills);
       if (skills.Count > 0)
@@ -180,19 +180,19 @@ namespace WhoIs.At.JIS.Helpers
       return matches[0];
     }
 
-    public List<string> getSkillsList()
+    public List<string> getUniqueValuesForListProperty(string propertyName)
     {
-      return getSkillsList(_graphHandler.getCachedUsers());
+      return getUniqueValuesForListProperty(_graphHandler.getCachedUsers(), propertyName);
     }
 
-    public List<string> getSkillsList(List<GraphUser> graphUsers)
+    public List<string> getUniqueValuesForListProperty(List<GraphUser> graphUsers, string propertyName)
     {
       var dict = new Dictionary<string, string>();
       foreach (var graphUser in graphUsers)
       {
-        foreach (var skill in graphUser.skills)
+        foreach (var value in (List<string>)graphUser.GetType().GetProperty(propertyName).GetValue(graphUser))
         {
-          dict[skill] = skill;
+          dict[value] = value;
         }
       }
       return dict.Values.ToList();
@@ -225,43 +225,7 @@ namespace WhoIs.At.JIS.Helpers
 
     public List<GraphUser> getUsersWithProject(List<GraphUser> graphUsers, string project)
     {
-      return graphUsers.Where(user => user.pastProjects.Contains(project, StringComparer.InvariantCultureIgnoreCase)).ToList();
-    }
-
-    public List<string> getProjectsList()
-    {
-      return getProjectsList(_graphHandler.getCachedUsers());
-    }
-
-    public List<string> getProjectsList(List<GraphUser> graphUsers)
-    {
-      var dict = new Dictionary<string, string>();
-      foreach (var graphUser in graphUsers)
-      {
-        foreach (var project in graphUser.pastProjects)
-        {
-          dict[project] = project;
-        }
-      }
-      return dict.Values.ToList();
-    }
-
-    public List<string> getInterestsList()
-    {
-      return getInterestsList(_graphHandler.getCachedUsers());
-    }
-
-    public static List<string> getInterestsList(List<GraphUser> graphUsers)
-    {
-      var dict = new Dictionary<string, string>();
-      foreach (var graphUser in graphUsers)
-      {
-        foreach (var interest in graphUser.interests)
-        {
-          dict[interest] = interest;
-        }
-      }
-      return dict.Values.ToList();
+      return graphUsers.Where(user => user.projects.Contains(project, StringComparer.InvariantCultureIgnoreCase)).ToList();
     }
     #endregion
   }
