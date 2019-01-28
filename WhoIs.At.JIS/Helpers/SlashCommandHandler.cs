@@ -13,19 +13,35 @@ using WhoIs.At.JIS.Models;
 namespace WhoIs.At.JIS.Helpers
 {
 
-  public static class SlashCommandHandler
+  public class SlashCommandHandler
   {
-    static bool isUpdating = false;
-    static List<string> VALID_COMMANDS = new List<string> { "debug", "help", "email", "name", "skillslist", "withskill", "interestslist", "withinterest", "projectslist", "withproject" };
-    static string[] CONFIG_VARIABLES = new string[] { "applicationId", "applicationSecret", "redirectUri", "tenantId", "domain" };
-    static string CACHE_FILE = "snapShot.json";
+    private readonly GraphHandler _graphHandler;
+    private readonly string _emailDomain;
+    private readonly IConfiguration _slackConfiguration;
 
-    public static string getHelpMessage()
+    static List<string> VALID_COMMANDS = new List<string> { "debug", "help", "email", "name", "skillslist", "withskill", "interestslist", "withinterest", "projectslist", "withproject" };
+
+    public SlashCommandHandler(IConfiguration configuration)
+    {
+      try
+      {
+        _emailDomain = configuration.GetSection("graph")["domain"];
+        _slackConfiguration = configuration.GetSection("slack");
+      }
+      catch (System.NullReferenceException)
+      {
+        _emailDomain = null;
+        _slackConfiguration = null;
+      }
+      _graphHandler = new GraphHandler(configuration);
+    }
+
+    public string getHelpMessage()
     {
       return @"Available commands:
-  `help`: showsthis message
-  `email <email@courts.mi.gov>`: shows information for the given email address
-  `name <search text>`: shows matches where the display name (formatted as <first> <last>) starts with the search text
+  `help`: showsthis message"
+  + $"`email <email@{_emailDomain}>`: shows information for the given email address"
+  + @"`name <search text>`: shows matches where the display name (formatted as <first> <last>) starts with the search text
   `projectslist`: shows a list of all projects that any users have identified
   `withproject <project>`: shows all users that have identified the given project in their profile
   `interestslist`: shows a list of all interests that any users have identified
@@ -91,104 +107,12 @@ namespace WhoIs.At.JIS.Helpers
       return whoIsCommand;
     }
 
-    public static List<GraphUser> getAllMsGraphUsers(IConfiguration graphConfig)
+    public List<string> getSkillsList()
     {
-      GraphServiceClient graphClient = GetAuthenticatedGraphClient(graphConfig);
-      List<GraphUser> allUsers = new List<GraphUser>();
-      for (char letter = 'A'; letter <= 'Z'; letter++)
-      {
-        Console.WriteLine($"*** Pulling users for {letter}");
-        List<QueryOption> options = new List<QueryOption>
-        {
-            new QueryOption("$filter", $"startsWith(mail,'{letter}')"),
-            new QueryOption("$select", "userPrincipalName")
-        };
-        try
-        {
-          var graphResult = graphClient.Users.Request(options).GetAsync().Result;
-          var retVal = new List<string>();
-          foreach (var result in graphResult)
-          {
-            List<QueryOption> userOptions = new List<QueryOption>
-          {
-              new QueryOption("$select", "displayName,jobTitle,userPrincipalName,interests,skills,pastProjects,aboutMe")
-          };
-            try
-            {
-              if (isValidEmail(result.UserPrincipalName, "courts.mi.gov"))
-              {
-                GraphUser graphUser = asGraphUser(graphClient.Users[result.UserPrincipalName].Request(userOptions).GetAsync().Result);
-                if (!String.IsNullOrEmpty(graphUser.jobTitle))
-                {
-                  allUsers.Add(asGraphUser(graphClient.Users[result.UserPrincipalName].Request(userOptions).GetAsync().Result));
-                }
-
-              }
-            }
-            catch (System.Exception)
-            {
-              System.Console.WriteLine($"*** Error encountered trying to pull {result.UserPrincipalName}");
-            }
-          }
-        }
-        catch (System.Exception)
-        {
-
-          System.Console.WriteLine($"*** Error pulling emails starting with {letter}");
-        }
-      }
-      return allUsers;
+      return getSkillsList(_graphHandler.getCachedUsers());
     }
 
-    async public static void updateUserCache(IConfiguration graphConfig)
-    {
-      if (!isUpdating)
-      {
-        Stopwatch watch = new Stopwatch();
-        watch.Start();
-        //Do things
-        isUpdating = true;
-        Console.WriteLine("*** Starting update process");
-        await Task.Run(() =>
-        {
-          var allUsers = getAllMsGraphUsers(graphConfig);
-          string json = JsonConvert.SerializeObject(allUsers.ToArray());
-
-          //write string to file
-          System.IO.File.WriteAllText(CACHE_FILE, json);
-          watch.Stop();
-          Console.WriteLine($"*** Update ran for {watch.Elapsed.TotalSeconds.ToString()} seconds");
-          isUpdating = false;
-        });
-      }
-      else
-      {
-        Console.WriteLine("*** Update was already running");
-      }
-    }
-
-    public static List<GraphUser> getCachedUsers()
-    {
-      return getCachedUsers(CACHE_FILE);
-
-    }
-
-    public static List<GraphUser> getCachedUsers(string filePath)
-    {
-      using (StreamReader r = new StreamReader(filePath))
-      {
-        string json = r.ReadToEnd();
-        return JsonConvert.DeserializeObject<List<GraphUser>>(json);
-      }
-
-    }
-
-    public static List<string> getSkillsList()
-    {
-      return getSkillsList(getCachedUsers());
-    }
-
-    public static List<string> getSkillsList(List<GraphUser> graphUsers)
+    public List<string> getSkillsList(List<GraphUser> graphUsers)
     {
       var dict = new Dictionary<string, string>();
       foreach (var graphUser in graphUsers)
@@ -201,7 +125,7 @@ namespace WhoIs.At.JIS.Helpers
       return dict.Values.ToList();
     }
 
-    public static string formatUserForSlack(GraphUser user)
+    public string formatUserForSlack(GraphUser user)
     {
       var profileData = $"*{user.displayName}*\n{user.jobTitle}\n{user.userPrincipalName}";
       if (!string.IsNullOrEmpty(user.aboutMe))
@@ -227,58 +151,73 @@ namespace WhoIs.At.JIS.Helpers
 
     }
 
-    public static string formatUserListForSlack(List<GraphUser> users)
+    public string formatUserListForSlack(List<GraphUser> users)
     {
       List<string> details = users.Select(user => formatUserForSlack(user)).ToList();
       return string.Join("\n================\n", details);
     }
 
-    public static List<GraphUser> getUsersWithSkill(string skill)
+    public List<GraphUser> getUsersWithSkill(string skill)
     {
-      return getUsersWithSkill(getCachedUsers(), skill);
+      return getUsersWithSkill(_graphHandler.getCachedUsers(), skill);
     }
 
-    public static List<GraphUser> getUsersWithSkill(List<GraphUser> graphUsers, string skill)
+    public List<GraphUser> getUsersWithSkill(List<GraphUser> graphUsers, string skill)
     {
       return graphUsers.Where(user => user.skills.Contains(skill, StringComparer.InvariantCultureIgnoreCase)).ToList();
     }
 
-    public static List<GraphUser> getUsersWithInterest(string interest)
+    public List<GraphUser> getUsersWithInterest(string interest)
     {
-      return getUsersWithInterest(getCachedUsers(), interest);
+      return getUsersWithInterest(_graphHandler.getCachedUsers(), interest);
     }
 
-    public static List<GraphUser> getUsersWithInterest(List<GraphUser> graphUsers, string interest)
+    public List<GraphUser> getUsersWithInterest(List<GraphUser> graphUsers, string interest)
     {
       return graphUsers.Where(user => user.interests.Contains(interest, StringComparer.InvariantCultureIgnoreCase)).ToList();
     }
 
-    public static List<GraphUser> getUsersWithProject(string project)
+    public List<GraphUser> getUsersWithProject(string project)
     {
-      return getUsersWithProject(getCachedUsers(), project);
+      return getUsersWithProject(_graphHandler.getCachedUsers(), project);
     }
 
-    public static List<GraphUser> getUsersWithProject(List<GraphUser> graphUsers, string project)
+    public List<GraphUser> getUsersWithProject(List<GraphUser> graphUsers, string project)
     {
       return graphUsers.Where(user => user.pastProjects.Contains(project, StringComparer.InvariantCultureIgnoreCase)).ToList();
     }
 
-    public static List<GraphUser> getUsersWithName(string name)
+    public List<GraphUser> getUsersWithName(string name)
     {
-      return getUsersWithName(getCachedUsers(), name);
+      return getUsersWithName(_graphHandler.getCachedUsers(), name);
     }
 
-    public static List<GraphUser> getUsersWithName(List<GraphUser> graphUsers, string name)
+    public List<GraphUser> getUsersWithName(List<GraphUser> graphUsers, string name)
     {
       return graphUsers.Where(user => user.displayName.StartsWith(name, StringComparison.InvariantCultureIgnoreCase)).ToList();
     }
 
-    public static List<string> getProjectsList()
+    public GraphUser getUserWithEmail(string email)
     {
-      return getProjectsList(getCachedUsers());
+      return getUserWithEmail(_graphHandler.getCachedUsers(), email);
     }
 
-    public static List<string> getProjectsList(List<GraphUser> graphUsers)
+    public GraphUser getUserWithEmail(List<GraphUser> graphUsers, string email)
+    {
+      var matches = graphUsers.Where(user => user.userPrincipalName.Equals(email, StringComparison.InvariantCultureIgnoreCase)).ToList();
+      if (matches.Count != 1)
+      {
+        return null;
+      }
+      return matches[0];
+    }
+
+    public List<string> getProjectsList()
+    {
+      return getProjectsList(_graphHandler.getCachedUsers());
+    }
+
+    public List<string> getProjectsList(List<GraphUser> graphUsers)
     {
       var dict = new Dictionary<string, string>();
       foreach (var graphUser in graphUsers)
@@ -291,9 +230,9 @@ namespace WhoIs.At.JIS.Helpers
       return dict.Values.ToList();
     }
 
-    public static List<string> getInterestsList()
+    public List<string> getInterestsList()
     {
-      return getInterestsList(getCachedUsers());
+      return getInterestsList(_graphHandler.getCachedUsers());
     }
 
     public static List<string> getInterestsList(List<GraphUser> graphUsers)
@@ -307,56 +246,6 @@ namespace WhoIs.At.JIS.Helpers
         }
       }
       return dict.Values.ToList();
-    }
-
-    private static GraphUser asGraphUser(User user)
-    {
-      return new GraphUser
-      {
-        displayName = user.DisplayName,
-        jobTitle = user.JobTitle,
-        userPrincipalName = user.UserPrincipalName,
-        aboutMe = user.AboutMe,
-        interests = user.Interests,
-        skills = user.Skills,
-        pastProjects = user.PastProjects
-      };
-    }
-
-    public static string getMsGraphResultsForEmail(string email, IConfiguration graphConfig)
-    {
-      GraphServiceClient graphClient = GetAuthenticatedGraphClient(graphConfig);
-      List<QueryOption> options = new List<QueryOption>
-        {
-            new QueryOption("$top", "10"),
-            new QueryOption("$select", "displayName,jobTitle,mail,interests,skills,pastProjects,aboutMe")
-        };
-
-      var graphResult = graphClient.Users[email].Request(options).GetAsync().Result;
-      return formatUserForSlack(asGraphUser(graphResult));
-    }
-
-    private static GraphServiceClient GetAuthenticatedGraphClient(IConfiguration graphConfig)
-    {
-      var authenticationProvider = CreateAuthorizationProvider(graphConfig);
-      var graphServiceClient = new GraphServiceClient(authenticationProvider);
-      return graphServiceClient;
-    }
-
-    private static IAuthenticationProvider CreateAuthorizationProvider(IConfiguration graphConfig)
-    {
-      var clientId = graphConfig.GetValue<string>("applicationId");
-      var clientSecret = graphConfig.GetValue<string>("applicationSecret");
-      var redirectUri = graphConfig.GetValue<string>("redirectUri");
-      var tenantId = graphConfig.GetValue<string>("tenantId");
-      var authority = $"https://login.microsoftonline.com/{tenantId}/v2.0";
-
-      //this specific scope means that application will default to what is defined in the application registration rather than using dynamic scopes
-      List<string> scopes = new List<string>();
-      scopes.Add("https://graph.microsoft.com/.default");
-
-      var cca = new ConfidentialClientApplication(clientId, authority, redirectUri, new ClientCredential(clientSecret), null, null);
-      return new MsalAuthenticationProvider(cca, scopes.ToArray());
     }
   }
 }

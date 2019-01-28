@@ -1,10 +1,11 @@
+using Microsoft.Extensions.Configuration;
 using System;
 using WhoIs.At.JIS.Helpers;
 using Xunit;
 
 namespace WhoIs.At.JIS.Tests
 {
-    public class SlashCommandHandlerTest
+  public class SlashCommandHandlerTest
   {
     [Fact]
     public void TestEmptyString()
@@ -47,8 +48,10 @@ namespace WhoIs.At.JIS.Tests
     [Fact]
     public void TestGetSkillList()
     {
-      var cachedUsers = SlashCommandHandler.getCachedUsers($"{System.Environment.CurrentDirectory}\\..\\..\\..\\testdata.json");
-      var skills = SlashCommandHandler.getSkillsList(cachedUsers);
+      SlashCommandHandler slashCommandHandler = new SlashCommandHandler(null);
+      GraphHandler graphHandler = new GraphHandler(null);
+      var cachedUsers = graphHandler.getCachedUsers($"{System.Environment.CurrentDirectory}\\..\\..\\..\\testdata.json");
+      var skills = slashCommandHandler.getSkillsList(cachedUsers);
       Console.WriteLine(string.Join("\n", skills));
       Assert.Equal(9, skills.Count);
       Assert.Contains("Database Administration", skills);
@@ -65,8 +68,10 @@ namespace WhoIs.At.JIS.Tests
     [Fact]
     public void TestGetUsersWithSkill()
     {
-      var cachedUsers = SlashCommandHandler.getCachedUsers($"{System.Environment.CurrentDirectory}\\..\\..\\..\\testdata.json");
-      var users = SlashCommandHandler.getUsersWithSkill(cachedUsers, "DevOps");
+      SlashCommandHandler slashCommandHandler = new SlashCommandHandler(null);
+      GraphHandler graphHandler = new GraphHandler(null);
+      var cachedUsers = graphHandler.getCachedUsers($"{System.Environment.CurrentDirectory}\\..\\..\\..\\testdata.json");
+      var users = slashCommandHandler.getUsersWithSkill(cachedUsers, "DevOps");
       Assert.Equal(2, users.Count);
     }
   }

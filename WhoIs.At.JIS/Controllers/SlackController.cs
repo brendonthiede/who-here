@@ -13,12 +13,17 @@ namespace WhoIs.At.JIS.Controllers
   {
     private readonly IConfiguration _slackConfiguration;
     private readonly IConfiguration _graphConfiguration;
-    private static HttpClient httpClient = new HttpClient();
+    private readonly HttpClient _httpClient;
+    private readonly SlashCommandHandler _slashCommandHandler;
+    private readonly GraphHandler _graphHandler;
 
     public SlackController(IConfiguration configuration)
     {
       _slackConfiguration = configuration.GetSection("slack");
       _graphConfiguration = configuration.GetSection("graph");
+      _slashCommandHandler = new SlashCommandHandler(configuration);
+      _graphHandler = new GraphHandler(configuration);
+      _httpClient = new HttpClient();
     }
 
     // GET api/slack
@@ -33,7 +38,7 @@ namespace WhoIs.At.JIS.Controllers
     [Route("updatecache")]
     public ActionResult<string> UpdateCache()
     {
-      SlashCommandHandler.updateUserCache(_graphConfiguration);
+      _graphHandler.updateUserCache();
       return "Update initiated";
     }
 
@@ -42,7 +47,7 @@ namespace WhoIs.At.JIS.Controllers
     [Route("help")]
     public ActionResult<string> GetHelp()
     {
-      return SlashCommandHandler.getHelpMessage();
+      return _slashCommandHandler.getHelpMessage();
     }
 
     // POST api/slack
@@ -76,21 +81,11 @@ namespace WhoIs.At.JIS.Controllers
           text = $"The host {responseUrl.Host} is not allowed"
         };
       }
-      RespondToSlack(slashCommandPayload);
       return new SlackResponse
       {
         response_type = "ephemeral",
-        text = $">Make sure your profile is up to date at https://delve-gcc.office.com"
+        text = $"{EvaluateSlackCommand(slashCommandPayload)}\n>Make sure your profile is up to date at https://delve-gcc.office.com"
       };
-    }
-
-    private async void RespondToSlack(SlashCommandPayload slashCommandPayload)
-    {
-      await httpClient.PostAsJsonAsync(slashCommandPayload.response_url, new SlackResponse
-      {
-        response_type = "ephemeral",
-        text = EvaluateSlackCommand(slashCommandPayload)
-      });
     }
 
     private string EvaluateSlackCommand(SlashCommandPayload slashCommandPayload)
@@ -102,7 +97,18 @@ namespace WhoIs.At.JIS.Controllers
       }
       if (command.command.Equals("email"))
       {
-        return SlashCommandHandler.getMsGraphResultsForEmail(command.parameters[0], _graphConfiguration);
+        var email = command.parameters[0];
+        var domain = _graphConfiguration["domain"];
+        if (string.IsNullOrEmpty(email) || !SlashCommandHandler.isValidEmail(email, domain))
+        {
+          return $"You must provide a valid email address with the {domain} domain";
+        }
+        var user = _slashCommandHandler.getUserWithEmail(email);
+        if (user == null || !user.userPrincipalName.Equals(email, StringComparison.InvariantCultureIgnoreCase))
+        {
+          return $"No user could be found with email address {email}";
+        }
+        return _slashCommandHandler.formatUserForSlack(user);
       }
       if (command.command.Equals("name"))
       {
@@ -111,16 +117,16 @@ namespace WhoIs.At.JIS.Controllers
         {
           return "You need to provide a name: /whois-at-jis name Mark";
         }
-        var users = SlashCommandHandler.getUsersWithName(startsWith);
+        var users = _slashCommandHandler.getUsersWithName(startsWith);
         if (users.Count.Equals(0))
         {
           return $"No users found with a name that starts with {startsWith}";
         }
-        return string.Join('\n', SlashCommandHandler.formatUserListForSlack(users));
+        return string.Join('\n', _slashCommandHandler.formatUserListForSlack(users));
       }
       if (command.command.Equals("skillslist"))
       {
-        return $"_Available skills:_ {string.Join(", ", SlashCommandHandler.getSkillsList())}";
+        return $"_Available skills:_ {string.Join(", ", _slashCommandHandler.getSkillsList())}";
       }
       if (command.command.Equals("withskill"))
       {
@@ -129,16 +135,16 @@ namespace WhoIs.At.JIS.Controllers
         {
           return "You need to provide a skill: /whois-at-jis withskill DevOps";
         }
-        var users = SlashCommandHandler.getUsersWithSkill(skill);
+        var users = _slashCommandHandler.getUsersWithSkill(skill);
         if (users.Count.Equals(0))
         {
-          return $"No users found with skill {skill}\n_Available skills:_ {string.Join(", ", SlashCommandHandler.getSkillsList())}";
+          return $"No users found with skill {skill}\n_Available skills:_ {string.Join(", ", _slashCommandHandler.getSkillsList())}";
         }
-        return string.Join('\n', SlashCommandHandler.formatUserListForSlack(users));
+        return string.Join('\n', _slashCommandHandler.formatUserListForSlack(users));
       }
       if (command.command.Equals("projectslist"))
       {
-        return $"_Available projects:_ {string.Join(", ", SlashCommandHandler.getProjectsList())}";
+        return $"_Available projects:_ {string.Join(", ", _slashCommandHandler.getProjectsList())}";
       }
       if (command.command.Equals("withproject"))
       {
@@ -147,16 +153,16 @@ namespace WhoIs.At.JIS.Controllers
         {
           return "You need to provide a project: /whois-at-jis withproject DevOps";
         }
-        var users = SlashCommandHandler.getUsersWithProject(project);
+        var users = _slashCommandHandler.getUsersWithProject(project);
         if (users.Count.Equals(0))
         {
-          return $"No users found with project {project}\n_Available projects:_ {string.Join(", ", SlashCommandHandler.getProjectsList())}";
+          return $"No users found with project {project}\n_Available projects:_ {string.Join(", ", _slashCommandHandler.getProjectsList())}";
         }
-        return string.Join('\n', SlashCommandHandler.formatUserListForSlack(users));
+        return string.Join('\n', _slashCommandHandler.formatUserListForSlack(users));
       }
       if (command.command.Equals("interestslist"))
       {
-        return $"_Available interests:_ {string.Join(", ", SlashCommandHandler.getInterestsList())}";
+        return $"_Available interests:_ {string.Join(", ", _slashCommandHandler.getInterestsList())}";
       }
       if (command.command.Equals("withinterest"))
       {
@@ -165,14 +171,14 @@ namespace WhoIs.At.JIS.Controllers
         {
           return "You need to provide a interest: /whois-at-jis withinterest bowling";
         }
-        var users = SlashCommandHandler.getUsersWithInterest(skill);
+        var users = _slashCommandHandler.getUsersWithInterest(skill);
         if (users.Count.Equals(0))
         {
-          return $"No users found with interest {skill}\n_Available interests:_ {string.Join(", ", SlashCommandHandler.getInterestsList())}";
+          return $"No users found with interest {skill}\n_Available interests:_ {string.Join(", ", _slashCommandHandler.getInterestsList())}";
         }
-        return string.Join('\n', SlashCommandHandler.formatUserListForSlack(users));
+        return string.Join('\n', _slashCommandHandler.formatUserListForSlack(users));
       }
-      return SlashCommandHandler.getHelpMessage();
+      return _slashCommandHandler.getHelpMessage();
     }
   }
 }
