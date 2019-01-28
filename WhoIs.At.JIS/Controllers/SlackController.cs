@@ -56,14 +56,18 @@ namespace WhoIs.At.JIS.Controllers
     public ActionResult<SlackResponse> Post([FromForm] SlashCommandPayload slashCommandPayload)
     {
       var authToken = _slackConfiguration.GetValue<string>("slashCommandToken");
-      if (string.IsNullOrEmpty(authToken)){
-        return new SlackResponse {
+      if (string.IsNullOrEmpty(authToken))
+      {
+        return new SlackResponse
+        {
           response_type = "ephemeral",
           text = "Authentication token is not set up correctly on the whoisatjis server"
         };
       }
-      if (!slashCommandPayload.token.Equals(authToken)){
-        return new SlackResponse {
+      if (!slashCommandPayload.token.Equals(authToken))
+      {
+        return new SlackResponse
+        {
           response_type = "ephemeral",
           text = "Invalid authentication token"
         };
@@ -108,12 +112,16 @@ namespace WhoIs.At.JIS.Controllers
       if (command.command.Equals("name"))
       {
         var startsWith = string.Join(' ', command.parameters);
-        var matches = SlashCommandHandler.getMsGraphResultsForName(startsWith, _graphConfiguration);
-        if (matches.Count.Equals(0))
+        if (string.IsNullOrEmpty(startsWith))
         {
-          return $"No names could be found starting with {startsWith}\nMake sure you provide names in the format of <first> <last>";
+          return "You need to provide a name: /whois-at-jis name Mark";
         }
-        return string.Join('\n', SlashCommandHandler.formatUserListForSlack(matches));
+        var users = SlashCommandHandler.getUsersWithName(startsWith);
+        if (users.Count.Equals(0))
+        {
+          return $"No users found with a name that starts with {startsWith}";
+        }
+        return string.Join('\n', SlashCommandHandler.formatUserListForSlack(users));
       }
       if (command.command.Equals("skillslist"))
       {

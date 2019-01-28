@@ -263,6 +263,16 @@ namespace WhoIs.At.JIS.Helpers
       return graphUsers.Where(user => user.pastProjects.Contains(project, StringComparer.InvariantCultureIgnoreCase)).ToList();
     }
 
+    public static List<GraphUser> getUsersWithName(string name)
+    {
+      return getUsersWithName(getCachedUsers(), name);
+    }
+
+    public static List<GraphUser> getUsersWithName(List<GraphUser> graphUsers, string name)
+    {
+      return graphUsers.Where(user => user.displayName.StartsWith(name)).ToList();
+    }
+
     public static List<string> getProjectsList()
     {
       return getProjectsList(getCachedUsers());
@@ -311,27 +321,6 @@ namespace WhoIs.At.JIS.Helpers
         skills = user.Skills,
         pastProjects = user.PastProjects
       };
-    }
-
-    public static List<GraphUser> getMsGraphResultsForName(string name, IConfiguration graphConfig)
-    {
-      GraphServiceClient graphClient = GetAuthenticatedGraphClient(graphConfig);
-      List<QueryOption> options = new List<QueryOption>
-        {
-            new QueryOption("$top", "100"),
-            new QueryOption("$filter", $"startsWith(displayName,'{name}')")
-        };
-
-      var graphResult = graphClient.Users.Request(options).GetAsync().Result;
-      var retVal = new List<GraphUser>();
-      foreach (var result in graphResult)
-      {
-        if (!string.IsNullOrEmpty(result.JobTitle) && isValidEmail(result.Mail, "courts.mi.gov"))
-        {
-          retVal.Add(asGraphUser(result));
-        }
-      }
-      return retVal;
     }
 
     public static string getMsGraphResultsForEmail(string email, IConfiguration graphConfig)
