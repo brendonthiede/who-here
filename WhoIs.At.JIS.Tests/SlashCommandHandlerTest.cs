@@ -1,14 +1,10 @@
 using System;
-using Xunit;
-using System.Collections.Generic;
-using WhoIs.At.JIS.Models;
 using WhoIs.At.JIS.Helpers;
-using Microsoft.Extensions.Configuration;
-using System.IO;
+using Xunit;
 
 namespace WhoIs.At.JIS.Tests
 {
-  public class SlashCommandHandlerTest
+    public class SlashCommandHandlerTest
   {
     [Fact]
     public void TestEmptyString()

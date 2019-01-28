@@ -1,14 +1,14 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Graph;
 using Microsoft.Identity.Client;
-using System.Collections.Generic;
-using WhoIs.At.JIS.Models;
-using System;
 using Newtonsoft.Json;
-using System.Threading.Tasks;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
+using WhoIs.At.JIS.Models;
 
 namespace WhoIs.At.JIS.Helpers
 {
@@ -270,7 +270,7 @@ namespace WhoIs.At.JIS.Helpers
 
     public static List<GraphUser> getUsersWithName(List<GraphUser> graphUsers, string name)
     {
-      return graphUsers.Where(user => user.displayName.StartsWith(name)).ToList();
+      return graphUsers.Where(user => user.displayName.StartsWith(name, StringComparison.InvariantCultureIgnoreCase)).ToList();
     }
 
     public static List<string> getProjectsList()
