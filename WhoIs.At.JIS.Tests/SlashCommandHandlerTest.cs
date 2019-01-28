@@ -3,6 +3,8 @@ using Xunit;
 using System.Collections.Generic;
 using WhoIs.At.JIS.Models;
 using WhoIs.At.JIS.Helpers;
+using Microsoft.Extensions.Configuration;
+using System.IO;
 
 namespace WhoIs.At.JIS.Tests
 {
@@ -25,31 +27,31 @@ namespace WhoIs.At.JIS.Tests
     [Fact]
     public void TestEmailString()
     {
-      var whoIsCommand = SlashCommandHandler.getCommandFromString("test@courts.mi.gov");
+      var whoIsCommand = SlashCommandHandler.getCommandFromString("test@mail.com");
       Assert.Equal("email", whoIsCommand.command);
-      Assert.Equal(new string[] { "test@courts.mi.gov" }, whoIsCommand.parameters);
+      Assert.Equal(new string[] { "test@mail.com" }, whoIsCommand.parameters);
     }
 
     [Fact]
     public void TestNameString()
     {
-      var whoIsCommand = SlashCommandHandler.getCommandFromString("Juan Valdez");
+      var whoIsCommand = SlashCommandHandler.getCommandFromString("That Guy");
       Assert.Equal("name", whoIsCommand.command);
-      Assert.Equal(new string[] { "Juan", "Valdez" }, whoIsCommand.parameters);
+      Assert.Equal(new string[] { "That", "Guy" }, whoIsCommand.parameters);
     }
 
     [Fact]
     public void TestTwoPartEmailString()
     {
-      var whoIsCommand = SlashCommandHandler.getCommandFromString("email test@courts.mi.gov");
+      var whoIsCommand = SlashCommandHandler.getCommandFromString("email test@mail.com");
       Assert.Equal("email", whoIsCommand.command);
-      Assert.Equal(new string[] { "test@courts.mi.gov" }, whoIsCommand.parameters);
+      Assert.Equal(new string[] { "test@mail.com" }, whoIsCommand.parameters);
     }
 
     [Fact]
     public void TestGetSkillList()
     {
-      var cachedUsers = SlashCommandHandler.getCachedUsers($"{System.Environment.CurrentDirectory}\\..\\..\\..\\snapShot.json");
+      var cachedUsers = SlashCommandHandler.getCachedUsers($"{System.Environment.CurrentDirectory}\\..\\..\\..\\testdata.json");
       var skills = SlashCommandHandler.getSkillsList(cachedUsers);
       Console.WriteLine(string.Join("\n", skills));
       Assert.Equal(9, skills.Count);
@@ -67,7 +69,7 @@ namespace WhoIs.At.JIS.Tests
     [Fact]
     public void TestGetUsersWithSkill()
     {
-      var cachedUsers = SlashCommandHandler.getCachedUsers($"{System.Environment.CurrentDirectory}\\..\\..\\..\\snapShot.json");
+      var cachedUsers = SlashCommandHandler.getCachedUsers($"{System.Environment.CurrentDirectory}\\..\\..\\..\\testdata.json");
       var users = SlashCommandHandler.getUsersWithSkill(cachedUsers, "DevOps");
       Assert.Equal(2, users.Count);
     }

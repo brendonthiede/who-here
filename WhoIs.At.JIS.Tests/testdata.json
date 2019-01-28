@@ -1,0 +1,75 @@
+[
+  {
+    "displayName": "Eugene Risner",
+    "jobTitle": "Code Slinger",
+    "userPrincipalName": "EugeneRisner@mail.com",
+    "aboutMe": null,
+    "interests": [],
+    "skills": [],
+    "pastProjects": []
+  },
+  {
+    "displayName": "Clyde Reynolds",
+    "jobTitle": "Database Administrator",
+    "userPrincipalName": "ClydeReynolds@mail.com",
+    "aboutMe": null,
+    "interests": [
+      "Hiking",
+      "Running",
+      "Camping"
+    ],
+    "skills": [
+      "DevOps",
+      "Database Administration"
+    ],
+    "pastProjects": [
+      "Recycling"
+    ]
+  },
+  {
+    "displayName": "Cecilia Cranford",
+    "jobTitle": "Facilities",
+    "userPrincipalName": "CeciliaCranford@mail.com",
+    "aboutMe": null,
+    "interests": [],
+    "skills": [],
+    "pastProjects": []
+  },
+  {
+    "displayName": "Larry Gonzalez",
+    "jobTitle": "DevOps Evangelist",
+    "userPrincipalName": "LarryGonzalez@mail.com",
+    "aboutMe": null,
+    "interests": [
+      "Running",
+      "Guitar",
+      "Music"
+    ],
+    "skills": [
+      "DevOps",
+      "JavaScript",
+      "Functional Programming",
+      "agile",
+      "Scrum",
+      "Kanban",
+      "SAFe"
+    ],
+    "pastProjects": [
+      "Azure DevOps",
+      "SonarQube"
+    ]
+  },
+  {
+    "displayName": "Carol Damico",
+    "jobTitle": "Support Technician",
+    "userPrincipalName": "CarolDamico@mail.com",
+    "aboutMe": "Husband and father of two teenagers, outdoorsman, and tinkerer.",
+    "interests": [],
+    "skills": [
+      "Troubleshooting"
+    ],
+    "pastProjects": [
+      "SharePoint"
+    ]
+  }
+]

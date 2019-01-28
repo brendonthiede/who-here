@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using WhoIs.At.JIS.Models;
 using WhoIs.At.JIS.Helpers;
 
@@ -15,7 +16,15 @@ namespace WhoIs.At.JIS.Controllers
   [ApiController]
   public class SlackController : ControllerBase
   {
+    private readonly IConfiguration _slackConfiguration;
+    private readonly IConfiguration _graphConfiguration;
     private static HttpClient httpClient = new HttpClient();
+
+    public SlackController(IConfiguration configuration)
+    {
+      _slackConfiguration = configuration.GetSection("slack");
+      _graphConfiguration = configuration.GetSection("graph");
+    }
 
     // GET api/slack
     [HttpGet]
@@ -24,29 +33,12 @@ namespace WhoIs.At.JIS.Controllers
       return "Silence is golden";
     }
 
-    // // GET api/slack/allusers
-    // [HttpGet]
-    // [Route("allusers")]
-    // public ActionResult<List<GraphUser>> GetAllUsers()
-    // {
-    //   var users = SlashCommandHandler.getAllMsGraphUsers();
-    //   return users;
-    // }
-
-    // // GET api/slack/cachedusers
-    // [HttpGet]
-    // [Route("cachedusers")]
-    // public ActionResult<List<GraphUser>> GetCachedUsers()
-    // {
-    //   return SlashCommandHandler.getCachedUsers();
-    // }
-
     // GET api/slack/updatecache
     [HttpGet]
     [Route("updatecache")]
     public ActionResult<string> UpdateCache()
     {
-      SlashCommandHandler.updateUserCache();
+      SlashCommandHandler.updateUserCache(_graphConfiguration);
       return "Update initiated";
     }
 
@@ -63,6 +55,19 @@ namespace WhoIs.At.JIS.Controllers
     [Produces("application/json")]
     public ActionResult<SlackResponse> Post([FromForm] SlashCommandPayload slashCommandPayload)
     {
+      var authToken = _slackConfiguration.GetValue<string>("slashCommandToken");
+      if (string.IsNullOrEmpty(authToken)){
+        return new SlackResponse {
+          response_type = "ephemeral",
+          text = "Authentication token is not set up correctly on the whoisatjis server"
+        };
+      }
+      if (!slashCommandPayload.token.Equals(authToken)){
+        return new SlackResponse {
+          response_type = "ephemeral",
+          text = "Invalid authentication token"
+        };
+      }
       var responseUrl = new Uri(slashCommandPayload.response_url);
       if (!responseUrl.Host.Equals("hooks.slack.com"))
       {
@@ -80,7 +85,7 @@ namespace WhoIs.At.JIS.Controllers
       };
     }
 
-    static async void RespondToSlack(SlashCommandPayload slashCommandPayload)
+    private async void RespondToSlack(SlashCommandPayload slashCommandPayload)
     {
       await httpClient.PostAsJsonAsync(slashCommandPayload.response_url, new SlackResponse
       {
@@ -89,20 +94,21 @@ namespace WhoIs.At.JIS.Controllers
       });
     }
 
-    static string EvaluateSlackCommand(SlashCommandPayload slashCommandPayload)
+    private string EvaluateSlackCommand(SlashCommandPayload slashCommandPayload)
     {
       WhoIsCommand command = SlashCommandHandler.getCommandFromString(slashCommandPayload.text);
-      if (command.command.Equals("debug")) {
+      if (command.command.Equals("debug"))
+      {
         return "";
       }
       if (command.command.Equals("email"))
       {
-        return SlashCommandHandler.getMsGraphResultsForEmail(command.parameters[0]);
+        return SlashCommandHandler.getMsGraphResultsForEmail(command.parameters[0], _graphConfiguration);
       }
       if (command.command.Equals("name"))
       {
         var startsWith = string.Join(' ', command.parameters);
-        var matches = SlashCommandHandler.getMsGraphResultsForName(startsWith);
+        var matches = SlashCommandHandler.getMsGraphResultsForName(startsWith, _graphConfiguration);
         if (matches.Count.Equals(0))
         {
           return $"No names could be found starting with {startsWith}\nMake sure you provide names in the format of <first> <last>";
@@ -121,7 +127,8 @@ namespace WhoIs.At.JIS.Controllers
           return "You need to provide a skill: /whois-at-jis withskill DevOps";
         }
         var users = SlashCommandHandler.getUsersWithSkill(skill);
-        if (users.Count.Equals(0)) {
+        if (users.Count.Equals(0))
+        {
           return $"No users found with skill {skill}\n_Available skills:_ {string.Join(", ", SlashCommandHandler.getSkillsList())}";
         }
         return string.Join('\n', SlashCommandHandler.formatUserListForSlack(users));
@@ -138,7 +145,8 @@ namespace WhoIs.At.JIS.Controllers
           return "You need to provide a project: /whois-at-jis withproject DevOps";
         }
         var users = SlashCommandHandler.getUsersWithProject(project);
-        if (users.Count.Equals(0)) {
+        if (users.Count.Equals(0))
+        {
           return $"No users found with project {project}\n_Available projects:_ {string.Join(", ", SlashCommandHandler.getProjectsList())}";
         }
         return string.Join('\n', SlashCommandHandler.formatUserListForSlack(users));
@@ -155,7 +163,8 @@ namespace WhoIs.At.JIS.Controllers
           return "You need to provide a interest: /whois-at-jis withinterest bowling";
         }
         var users = SlashCommandHandler.getUsersWithInterest(skill);
-        if (users.Count.Equals(0)) {
+        if (users.Count.Equals(0))
+        {
           return $"No users found with interest {skill}\n_Available interests:_ {string.Join(", ", SlashCommandHandler.getInterestsList())}";
         }
         return string.Join('\n', SlashCommandHandler.formatUserListForSlack(users));

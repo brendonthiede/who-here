@@ -91,9 +91,9 @@ namespace WhoIs.At.JIS.Helpers
       return whoIsCommand;
     }
 
-    public static List<GraphUser> getAllMsGraphUsers()
+    public static List<GraphUser> getAllMsGraphUsers(IConfiguration graphConfig)
     {
-      GraphServiceClient graphClient = GetAuthenticatedGraphClient(getAuthConfig());
+      GraphServiceClient graphClient = GetAuthenticatedGraphClient(graphConfig);
       List<GraphUser> allUsers = new List<GraphUser>();
       for (char letter = 'A'; letter <= 'Z'; letter++)
       {
@@ -140,7 +140,7 @@ namespace WhoIs.At.JIS.Helpers
       return allUsers;
     }
 
-    async public static void updateUserCache()
+    async public static void updateUserCache(IConfiguration graphConfig)
     {
       if (!isUpdating)
       {
@@ -151,7 +151,7 @@ namespace WhoIs.At.JIS.Helpers
         Console.WriteLine("*** Starting update process");
         await Task.Run(() =>
         {
-          var allUsers = getAllMsGraphUsers();
+          var allUsers = getAllMsGraphUsers(graphConfig);
           string json = JsonConvert.SerializeObject(allUsers.ToArray());
 
           //write string to file
@@ -313,9 +313,9 @@ namespace WhoIs.At.JIS.Helpers
       };
     }
 
-    public static List<string> getMsGraphResultsForName(string name)
+    public static List<string> getMsGraphResultsForName(string name, IConfiguration graphConfig)
     {
-      GraphServiceClient graphClient = GetAuthenticatedGraphClient(getAuthConfig());
+      GraphServiceClient graphClient = GetAuthenticatedGraphClient(graphConfig);
       List<QueryOption> options = new List<QueryOption>
         {
             new QueryOption("$top", "100"),
@@ -335,9 +335,9 @@ namespace WhoIs.At.JIS.Helpers
       return retVal;
     }
 
-    public static string getMsGraphResultsForEmail(string email)
+    public static string getMsGraphResultsForEmail(string email, IConfiguration graphConfig)
     {
-      GraphServiceClient graphClient = GetAuthenticatedGraphClient(getAuthConfig());
+      GraphServiceClient graphClient = GetAuthenticatedGraphClient(graphConfig);
       List<QueryOption> options = new List<QueryOption>
         {
             new QueryOption("$top", "10"),
@@ -348,53 +348,20 @@ namespace WhoIs.At.JIS.Helpers
       return formatUserForSlack(asGraphUser(graphResult));
     }
 
-    private static Dictionary<string, string> getAuthConfig()
+    private static GraphServiceClient GetAuthenticatedGraphClient(IConfiguration graphConfig)
     {
-      IConfigurationRoot config;
-      Dictionary<string, string> graphConfig = new Dictionary<string, string>();
-      try
-      {
-        var basePath = System.IO.Directory.GetCurrentDirectory();
-        config = new ConfigurationBuilder()
-        .SetBasePath(basePath)
-        .AddJsonFile("appsettings.json", false, false)
-        .Build();
-      }
-      catch (Exception)
-      {
-        config = null;
-      }
-      var envVars = System.Environment.GetEnvironmentVariables();
-      if (config != null)
-      {
-        foreach (var configVar in CONFIG_VARIABLES)
-        {
-          if (!string.IsNullOrEmpty(config[configVar]))
-          {
-            graphConfig.Add(configVar, config[configVar]);
-          }
-          else if (envVars.Contains(configVar))
-          {
-            graphConfig.Add(configVar, (string)envVars[configVar]);
-          }
-        }
-      }
-      return graphConfig;
-    }
-
-    private static GraphServiceClient GetAuthenticatedGraphClient(Dictionary<string, string> config)
-    {
-      var authenticationProvider = CreateAuthorizationProvider(config);
+      var authenticationProvider = CreateAuthorizationProvider(graphConfig);
       var graphServiceClient = new GraphServiceClient(authenticationProvider);
       return graphServiceClient;
     }
 
-    private static IAuthenticationProvider CreateAuthorizationProvider(Dictionary<string, string> config)
+    private static IAuthenticationProvider CreateAuthorizationProvider(IConfiguration graphConfig)
     {
-      var clientId = config["applicationId"];
-      var clientSecret = config["applicationSecret"];
-      var redirectUri = config["redirectUri"];
-      var authority = $"https://login.microsoftonline.com/{config["tenantId"]}/v2.0";
+      var clientId = graphConfig.GetValue<string>("applicationId");
+      var clientSecret = graphConfig.GetValue<string>("applicationSecret");
+      var redirectUri = graphConfig.GetValue<string>("redirectUri");
+      var tenantId = graphConfig.GetValue<string>("tenantId");
+      var authority = $"https://login.microsoftonline.com/{tenantId}/v2.0";
 
       //this specific scope means that application will default to what is defined in the application registration rather than using dynamic scopes
       List<string> scopes = new List<string>();
