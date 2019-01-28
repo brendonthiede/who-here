@@ -15,11 +15,11 @@ namespace WhoIs.At.JIS.Helpers
 
   public class SlashCommandHandler
   {
-    #region Private Properties
+    #region Private Properties and Constants
     private readonly GraphHandler _graphHandler;
     private readonly string _emailDomain;
     private readonly IConfiguration _slackConfiguration;
-    private static List<string> VALID_COMMANDS = new List<string> { "debug", "help", "email", "name", "skillslist", "withskill", "interestslist", "withinterest", "projectslist", "withproject" };
+    private static List<string> VALID_COMMANDS = new List<string> { "debug", "help", "email", "name", "jobtitlelist", "skillslist", "withskill", "interestslist", "withinterest", "projectslist", "withproject" };
     #endregion
 
     public SlashCommandHandler(IConfiguration configuration)
@@ -137,6 +137,7 @@ namespace WhoIs.At.JIS.Helpers
   `help`: showsthis message"
   + $"`email <email@{_emailDomain}>`: shows information for the given email address"
   + @"`name <search text>`: shows matches where the display name (formatted as <first> <last>) starts with the search text
+  `jobtitlelist`: shows a list of all job titles listed for users
   `projectslist`: shows a list of all projects that any users have identified
   `withproject <project>`: shows all users that have identified the given project in their profile
   `interestslist`: shows a list of all interests that any users have identified
@@ -198,34 +199,33 @@ namespace WhoIs.At.JIS.Helpers
       return dict.Values.ToList();
     }
 
-    public List<GraphUser> getUsersWithInterest(string interest)
+    public List<string> getUniqueValuesForStringProperty(string propertyName)
     {
-      return getUsersWithInterest(_graphHandler.getCachedUsers(), interest);
+      return getUniqueValuesForStringProperty(_graphHandler.getCachedUsers(), propertyName);
     }
 
-    public List<GraphUser> getUsersWithInterest(List<GraphUser> graphUsers, string interest)
+    public List<string> getUniqueValuesForStringProperty(List<GraphUser> graphUsers, string propertyName)
     {
-      return graphUsers.Where(user => user.interests.Contains(interest, StringComparer.InvariantCultureIgnoreCase)).ToList();
+      var dict = new Dictionary<string, string>();
+      foreach (var graphUser in graphUsers)
+      {
+        var value = (string)graphUser.GetType().GetProperty(propertyName).GetValue(graphUser, null);
+        if (!string.IsNullOrEmpty(value))
+        {
+          dict[value] = value;
+        }
+      }
+      return dict.Values.ToList();
     }
 
-    public List<GraphUser> getUsersWithSkill(string skill)
+    public List<GraphUser> getUsersWithListProperty(string propertyName, string propertyValue)
     {
-      return getUsersWithSkill(_graphHandler.getCachedUsers(), skill);
+      return getUsersWithListProperty(_graphHandler.getCachedUsers(), propertyName, propertyValue);
     }
 
-    public List<GraphUser> getUsersWithSkill(List<GraphUser> graphUsers, string skill)
+    public List<GraphUser> getUsersWithListProperty(List<GraphUser> graphUsers, string propertyName, string propertyValue)
     {
-      return graphUsers.Where(user => user.skills.Contains(skill, StringComparer.InvariantCultureIgnoreCase)).ToList();
-    }
-
-    public List<GraphUser> getUsersWithProject(string project)
-    {
-      return getUsersWithProject(_graphHandler.getCachedUsers(), project);
-    }
-
-    public List<GraphUser> getUsersWithProject(List<GraphUser> graphUsers, string project)
-    {
-      return graphUsers.Where(user => user.projects.Contains(project, StringComparer.InvariantCultureIgnoreCase)).ToList();
+      return graphUsers.Where(user => ((List<string>)user.GetType().GetProperty(propertyName).GetValue(user)).Contains(propertyValue, StringComparer.InvariantCultureIgnoreCase)).ToList();
     }
     #endregion
   }

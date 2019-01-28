@@ -52,7 +52,6 @@ namespace WhoIs.At.JIS.Tests
       GraphHandler graphHandler = new GraphHandler(null);
       var cachedUsers = graphHandler.getCachedUsers($"{System.Environment.CurrentDirectory}\\..\\..\\..\\testdata.json");
       var skills = slashCommandHandler.getUniqueValuesForListProperty(cachedUsers, "skills");
-      Console.WriteLine(string.Join("\n", skills));
       Assert.Equal(9, skills.Count);
       Assert.Contains("Database Administration", skills);
       Assert.Contains("DevOps", skills);
@@ -66,12 +65,27 @@ namespace WhoIs.At.JIS.Tests
     }
 
     [Fact]
+    public void TestGetJobTitleList()
+    {
+      SlashCommandHandler slashCommandHandler = new SlashCommandHandler(null);
+      GraphHandler graphHandler = new GraphHandler(null);
+      var cachedUsers = graphHandler.getCachedUsers($"{System.Environment.CurrentDirectory}\\..\\..\\..\\testdata.json");
+      var titles = slashCommandHandler.getUniqueValuesForStringProperty(cachedUsers, "jobTitle");
+      Assert.Equal(5, titles.Count);
+      Assert.Contains("Code Slinger", titles);
+      Assert.Contains("Database Administrator", titles);
+      Assert.Contains("Facilities", titles);
+      Assert.Contains("DevOps Evangelist", titles);
+      Assert.Contains("Support Technician", titles);
+    }
+
+    [Fact]
     public void TestGetUsersWithSkill()
     {
       SlashCommandHandler slashCommandHandler = new SlashCommandHandler(null);
       GraphHandler graphHandler = new GraphHandler(null);
       var cachedUsers = graphHandler.getCachedUsers($"{System.Environment.CurrentDirectory}\\..\\..\\..\\testdata.json");
-      var users = slashCommandHandler.getUsersWithSkill(cachedUsers, "DevOps");
+      var users = slashCommandHandler.getUsersWithListProperty(cachedUsers, "skills", "DevOps");
       Assert.Equal(2, users.Count);
     }
   }
