@@ -113,7 +113,7 @@ namespace WhoIs.At.JIS.Controllers
         {
           return $"No names could be found starting with {startsWith}\nMake sure you provide names in the format of <first> <last>";
         }
-        return string.Join('\n', matches.ToArray());
+        return string.Join('\n', SlashCommandHandler.formatUserListForSlack(matches));
       }
       if (command.command.Equals("skillslist"))
       {

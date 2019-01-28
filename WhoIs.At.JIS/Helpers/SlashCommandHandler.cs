@@ -230,7 +230,7 @@ namespace WhoIs.At.JIS.Helpers
     public static string formatUserListForSlack(List<GraphUser> users)
     {
       List<string> details = users.Select(user => formatUserForSlack(user)).ToList();
-      return string.Join("\n==========\n", details);
+      return string.Join("\n================\n", details);
     }
 
     public static List<GraphUser> getUsersWithSkill(string skill)
@@ -313,7 +313,7 @@ namespace WhoIs.At.JIS.Helpers
       };
     }
 
-    public static List<string> getMsGraphResultsForName(string name, IConfiguration graphConfig)
+    public static List<GraphUser> getMsGraphResultsForName(string name, IConfiguration graphConfig)
     {
       GraphServiceClient graphClient = GetAuthenticatedGraphClient(graphConfig);
       List<QueryOption> options = new List<QueryOption>
@@ -323,13 +323,12 @@ namespace WhoIs.At.JIS.Helpers
         };
 
       var graphResult = graphClient.Users.Request(options).GetAsync().Result;
-      var retVal = new List<string>();
+      var retVal = new List<GraphUser>();
       foreach (var result in graphResult)
       {
         if (!string.IsNullOrEmpty(result.JobTitle) && isValidEmail(result.Mail, "courts.mi.gov"))
         {
-          retVal.Add($"{result.DisplayName} - {result.JobTitle} - {result.Mail}");
-
+          retVal.Add(asGraphUser(result));
         }
       }
       return retVal;
