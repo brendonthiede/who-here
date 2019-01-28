@@ -15,11 +15,12 @@ namespace WhoIs.At.JIS.Helpers
 
   public class SlashCommandHandler
   {
+    #region Private Properties
     private readonly GraphHandler _graphHandler;
     private readonly string _emailDomain;
     private readonly IConfiguration _slackConfiguration;
-
-    static List<string> VALID_COMMANDS = new List<string> { "debug", "help", "email", "name", "skillslist", "withskill", "interestslist", "withinterest", "projectslist", "withproject" };
+    private static List<string> VALID_COMMANDS = new List<string> { "debug", "help", "email", "name", "skillslist", "withskill", "interestslist", "withinterest", "projectslist", "withproject" };
+    #endregion
 
     public SlashCommandHandler(IConfiguration configuration)
     {
@@ -36,20 +37,7 @@ namespace WhoIs.At.JIS.Helpers
       _graphHandler = new GraphHandler(configuration);
     }
 
-    public string getHelpMessage()
-    {
-      return @"Available commands:
-  `help`: showsthis message"
-  + $"`email <email@{_emailDomain}>`: shows information for the given email address"
-  + @"`name <search text>`: shows matches where the display name (formatted as <first> <last>) starts with the search text
-  `projectslist`: shows a list of all projects that any users have identified
-  `withproject <project>`: shows all users that have identified the given project in their profile
-  `interestslist`: shows a list of all interests that any users have identified
-  `withinterest <interest>`: shows all users that have identified the given interest in their profile
-  `skillslist`: shows a list of all skills that any users have identified
-  `withskill <skill>`: shows all users that have identified the given skill in their profile";
-    }
-
+    #region Validators and Converters
     public static bool isValidCommand(string command)
     {
       return VALID_COMMANDS.Contains(command);
@@ -79,24 +67,23 @@ namespace WhoIs.At.JIS.Helpers
         return false;
       }
     }
-
     public static WhoIsCommand getCommandFromString(string text)
     {
       var whoIsCommand = new WhoIsCommand();
       whoIsCommand.command = "help";
-      whoIsCommand.parameters = text.Split(' ');
-      if (whoIsCommand.parameters.Length > 0 && whoIsCommand.parameters[0].Length > 0)
+      var paramArray = text.Split(' ');
+      if (paramArray.Length > 0 && paramArray[0].Length > 0)
       {
-        whoIsCommand.command = whoIsCommand.parameters[0].ToLower();
+        whoIsCommand.command = paramArray[0].ToLower();
         if (isValidCommand(whoIsCommand.command))
         {
           var tmp = new List<string>(text.Split(' '));
           tmp.RemoveAt(0);
-          whoIsCommand.parameters = tmp.ToArray();
+          paramArray = tmp.ToArray();
         }
         else if (isValidEmail(whoIsCommand.command))
         {
-          whoIsCommand.parameters = new string[] { whoIsCommand.command };
+          paramArray = new string[] { whoIsCommand.command };
           whoIsCommand.command = "email";
         }
         else
@@ -104,27 +91,12 @@ namespace WhoIs.At.JIS.Helpers
           whoIsCommand.command = "name";
         }
       }
+      whoIsCommand.parameters = string.Join(' ', paramArray);
       return whoIsCommand;
     }
+    #endregion
 
-    public List<string> getSkillsList()
-    {
-      return getSkillsList(_graphHandler.getCachedUsers());
-    }
-
-    public List<string> getSkillsList(List<GraphUser> graphUsers)
-    {
-      var dict = new Dictionary<string, string>();
-      foreach (var graphUser in graphUsers)
-      {
-        foreach (var skill in graphUser.skills)
-        {
-          dict[skill] = skill;
-        }
-      }
-      return dict.Values.ToList();
-    }
-
+    #region Formatters
     public string formatUserForSlack(GraphUser user)
     {
       var profileData = $"*{user.displayName}*\n{user.jobTitle}\n{user.userPrincipalName}";
@@ -156,35 +128,21 @@ namespace WhoIs.At.JIS.Helpers
       List<string> details = users.Select(user => formatUserForSlack(user)).ToList();
       return string.Join("\n================\n", details);
     }
+    #endregion
 
-    public List<GraphUser> getUsersWithSkill(string skill)
+    #region Getters
+    public string getHelpMessage()
     {
-      return getUsersWithSkill(_graphHandler.getCachedUsers(), skill);
-    }
-
-    public List<GraphUser> getUsersWithSkill(List<GraphUser> graphUsers, string skill)
-    {
-      return graphUsers.Where(user => user.skills.Contains(skill, StringComparer.InvariantCultureIgnoreCase)).ToList();
-    }
-
-    public List<GraphUser> getUsersWithInterest(string interest)
-    {
-      return getUsersWithInterest(_graphHandler.getCachedUsers(), interest);
-    }
-
-    public List<GraphUser> getUsersWithInterest(List<GraphUser> graphUsers, string interest)
-    {
-      return graphUsers.Where(user => user.interests.Contains(interest, StringComparer.InvariantCultureIgnoreCase)).ToList();
-    }
-
-    public List<GraphUser> getUsersWithProject(string project)
-    {
-      return getUsersWithProject(_graphHandler.getCachedUsers(), project);
-    }
-
-    public List<GraphUser> getUsersWithProject(List<GraphUser> graphUsers, string project)
-    {
-      return graphUsers.Where(user => user.pastProjects.Contains(project, StringComparer.InvariantCultureIgnoreCase)).ToList();
+      return @"Available commands:
+  `help`: showsthis message"
+  + $"`email <email@{_emailDomain}>`: shows information for the given email address"
+  + @"`name <search text>`: shows matches where the display name (formatted as <first> <last>) starts with the search text
+  `projectslist`: shows a list of all projects that any users have identified
+  `withproject <project>`: shows all users that have identified the given project in their profile
+  `interestslist`: shows a list of all interests that any users have identified
+  `withinterest <interest>`: shows all users that have identified the given interest in their profile
+  `skillslist`: shows a list of all skills that any users have identified
+  `withskill <skill>`: shows all users that have identified the given skill in their profile";
     }
 
     public List<GraphUser> getUsersWithName(string name)
@@ -194,7 +152,17 @@ namespace WhoIs.At.JIS.Helpers
 
     public List<GraphUser> getUsersWithName(List<GraphUser> graphUsers, string name)
     {
-      return graphUsers.Where(user => user.displayName.StartsWith(name, StringComparison.InvariantCultureIgnoreCase)).ToList();
+      return graphUsers.Where(user => user.displayName.Contains(name, StringComparison.InvariantCultureIgnoreCase)).ToList();
+    }
+
+    public List<GraphUser> getJobTitleWithName(string title)
+    {
+      return getJobTitleWithName(_graphHandler.getCachedUsers(), title);
+    }
+
+    public List<GraphUser> getJobTitleWithName(List<GraphUser> graphUsers, string title)
+    {
+      return graphUsers.Where(user => user.jobTitle.Contains(title, StringComparison.InvariantCultureIgnoreCase)).ToList();
     }
 
     public GraphUser getUserWithEmail(string email)
@@ -210,6 +178,54 @@ namespace WhoIs.At.JIS.Helpers
         return null;
       }
       return matches[0];
+    }
+
+    public List<string> getSkillsList()
+    {
+      return getSkillsList(_graphHandler.getCachedUsers());
+    }
+
+    public List<string> getSkillsList(List<GraphUser> graphUsers)
+    {
+      var dict = new Dictionary<string, string>();
+      foreach (var graphUser in graphUsers)
+      {
+        foreach (var skill in graphUser.skills)
+        {
+          dict[skill] = skill;
+        }
+      }
+      return dict.Values.ToList();
+    }
+
+    public List<GraphUser> getUsersWithInterest(string interest)
+    {
+      return getUsersWithInterest(_graphHandler.getCachedUsers(), interest);
+    }
+
+    public List<GraphUser> getUsersWithInterest(List<GraphUser> graphUsers, string interest)
+    {
+      return graphUsers.Where(user => user.interests.Contains(interest, StringComparer.InvariantCultureIgnoreCase)).ToList();
+    }
+
+    public List<GraphUser> getUsersWithSkill(string skill)
+    {
+      return getUsersWithSkill(_graphHandler.getCachedUsers(), skill);
+    }
+
+    public List<GraphUser> getUsersWithSkill(List<GraphUser> graphUsers, string skill)
+    {
+      return graphUsers.Where(user => user.skills.Contains(skill, StringComparer.InvariantCultureIgnoreCase)).ToList();
+    }
+
+    public List<GraphUser> getUsersWithProject(string project)
+    {
+      return getUsersWithProject(_graphHandler.getCachedUsers(), project);
+    }
+
+    public List<GraphUser> getUsersWithProject(List<GraphUser> graphUsers, string project)
+    {
+      return graphUsers.Where(user => user.pastProjects.Contains(project, StringComparer.InvariantCultureIgnoreCase)).ToList();
     }
 
     public List<string> getProjectsList()
@@ -247,5 +263,6 @@ namespace WhoIs.At.JIS.Helpers
       }
       return dict.Values.ToList();
     }
+    #endregion
   }
 }

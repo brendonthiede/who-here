@@ -97,7 +97,7 @@ namespace WhoIs.At.JIS.Controllers
       }
       if (command.command.Equals("email"))
       {
-        var email = command.parameters[0];
+        var email = command.parameters;
         var domain = _graphConfiguration["domain"];
         if (string.IsNullOrEmpty(email) || !SlashCommandHandler.isValidEmail(email, domain))
         {
@@ -112,7 +112,7 @@ namespace WhoIs.At.JIS.Controllers
       }
       if (command.command.Equals("name"))
       {
-        var startsWith = string.Join(' ', command.parameters);
+        var startsWith = command.parameters;
         if (string.IsNullOrEmpty(startsWith))
         {
           return "You need to provide a name: /whois-at-jis name Mark";
@@ -130,7 +130,7 @@ namespace WhoIs.At.JIS.Controllers
       }
       if (command.command.Equals("withskill"))
       {
-        var skill = string.Join(" ", command.parameters);
+        var skill = command.parameters;
         if (string.IsNullOrEmpty(skill))
         {
           return "You need to provide a skill: /whois-at-jis withskill DevOps";
@@ -148,7 +148,7 @@ namespace WhoIs.At.JIS.Controllers
       }
       if (command.command.Equals("withproject"))
       {
-        var project = string.Join(" ", command.parameters);
+        var project = command.parameters;
         if (string.IsNullOrEmpty(project))
         {
           return "You need to provide a project: /whois-at-jis withproject DevOps";
@@ -166,15 +166,15 @@ namespace WhoIs.At.JIS.Controllers
       }
       if (command.command.Equals("withinterest"))
       {
-        var skill = string.Join(" ", command.parameters);
-        if (string.IsNullOrEmpty(skill))
+        var interest = command.parameters;
+        if (string.IsNullOrEmpty(interest))
         {
           return "You need to provide a interest: /whois-at-jis withinterest bowling";
         }
-        var users = _slashCommandHandler.getUsersWithInterest(skill);
+        var users = _slashCommandHandler.getUsersWithInterest(interest);
         if (users.Count.Equals(0))
         {
-          return $"No users found with interest {skill}\n_Available interests:_ {string.Join(", ", _slashCommandHandler.getInterestsList())}";
+          return $"No users found with interest {interest}\n_Available interests:_ {string.Join(", ", _slashCommandHandler.getInterestsList())}";
         }
         return string.Join('\n', _slashCommandHandler.formatUserListForSlack(users));
       }

@@ -26,7 +26,7 @@ namespace WhoIs.At.JIS.Tests
     {
       var whoIsCommand = SlashCommandHandler.getCommandFromString("test@mail.com");
       Assert.Equal("email", whoIsCommand.command);
-      Assert.Equal(new string[] { "test@mail.com" }, whoIsCommand.parameters);
+      Assert.Equal("test@mail.com", whoIsCommand.parameters);
     }
 
     [Fact]
@@ -34,7 +34,7 @@ namespace WhoIs.At.JIS.Tests
     {
       var whoIsCommand = SlashCommandHandler.getCommandFromString("That Guy");
       Assert.Equal("name", whoIsCommand.command);
-      Assert.Equal(new string[] { "That", "Guy" }, whoIsCommand.parameters);
+      Assert.Equal("That Guy", whoIsCommand.parameters);
     }
 
     [Fact]
@@ -42,7 +42,7 @@ namespace WhoIs.At.JIS.Tests
     {
       var whoIsCommand = SlashCommandHandler.getCommandFromString("email test@mail.com");
       Assert.Equal("email", whoIsCommand.command);
-      Assert.Equal(new string[] { "test@mail.com" }, whoIsCommand.parameters);
+      Assert.Equal("test@mail.com", whoIsCommand.parameters);
     }
 
     [Fact]
