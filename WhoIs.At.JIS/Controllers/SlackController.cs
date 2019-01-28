@@ -140,6 +140,15 @@ namespace WhoIs.At.JIS.Controllers
         }
         return string.Join('\n', _slashCommandHandler.formatUserListForSlack(users));
       }
+      if (command.command.Equals("withjobtitle"))
+      {
+        var users = _slashCommandHandler.getJobTitleWithName(command.parameters);
+        if (users.Count.Equals(0))
+        {
+          return $"No users found with a job title of {command.parameters}";
+        }
+        return string.Join('\n', _slashCommandHandler.formatUserListForSlack(users));
+      }
       if (command.command.StartsWith("with"))
       {
         var searchType = command.command.Replace("with", "");

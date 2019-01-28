@@ -19,7 +19,7 @@ namespace WhoIs.At.JIS.Helpers
     private readonly GraphHandler _graphHandler;
     private readonly string _emailDomain;
     private readonly IConfiguration _slackConfiguration;
-    private static List<string> VALID_COMMANDS = new List<string> { "debug", "help", "email", "name", "jobtitlelist", "skillslist", "withskill", "interestslist", "withinterest", "projectslist", "withproject" };
+    private static List<string> VALID_COMMANDS = new List<string> { "debug", "help", "email", "name", "jobtitlelist", "withjobtitle", "skillslist", "withskill", "interestslist", "withinterest", "projectslist", "withproject" };
     #endregion
 
     public SlashCommandHandler(IConfiguration configuration)
