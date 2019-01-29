@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using WhoIs.At.JIS.Helpers;
 using WhoIs.At.JIS.Models;
@@ -58,7 +59,6 @@ namespace WhoIs.At.JIS.Controllers
       {
         return new SlackResponse
         {
-          response_type = "ephemeral",
           text = "Authentication token is not set up correctly on the whoisatjis server"
         };
       }
@@ -66,7 +66,6 @@ namespace WhoIs.At.JIS.Controllers
       {
         return new SlackResponse
         {
-          response_type = "ephemeral",
           text = "Invalid authentication token"
         };
       }
@@ -75,93 +74,80 @@ namespace WhoIs.At.JIS.Controllers
       {
         return new SlackResponse
         {
-          response_type = "ephemeral",
           text = $"The host {responseUrl.Host} is not allowed"
         };
       }
       Task.Run(() => _graphHandler.updateUserCache());
       return new SlackResponse
       {
-        response_type = "ephemeral",
         text = $"{EvaluateSlackCommand(slashCommandPayload)}\n>Make sure your profile is up to date at https://delve-gcc.office.com"
       };
     }
 
-    private string EvaluateSlackCommand(SlashCommandPayload slashCommandPayload)
+    private SlackResponse EvaluateSlackCommand(SlashCommandPayload slashCommandPayload)
     {
+      SlackResponse response = new SlackResponse();
       WhoIsCommand command = SlashCommandHandler.getCommandFromString(slashCommandPayload.text);
-      if (command.command.Equals("debug"))
-      {
-        return "";
-      }
       #region Commands without parameters
       if (command.command.Equals("help") || !SlashCommandHandler.isValidCommand(command.command))
       {
-        return _slashCommandHandler.getHelpMessage();
+        response.text = _slashCommandHandler.getHelpMessage();
       }
-      if (command.command.Equals("jobtitlelist"))
+      else if (command.command.Equals("jobtitlelist"))
       {
-        return $"_Available job titles:_ {string.Join(", ", _slashCommandHandler.getUniqueValuesForStringProperty("jobTitle"))}";
+        response.text = $"_Available job titles:_ {string.Join(", ", _slashCommandHandler.getUniqueValuesForStringProperty("jobTitle"))}";
       }
-      if (command.command.EndsWith("list"))
+      else if (command.command.EndsWith("list"))
       {
         var listType = command.command.Replace("list", "");
-        return $"_Available {listType}:_ {string.Join(", ", _slashCommandHandler.getUniqueValuesForListProperty(listType))}";
+        response.text = $"_Available {listType}:_ {string.Join(", ", _slashCommandHandler.getUniqueValuesForListProperty(listType))}";
       }
+      if (!string.IsNullOrEmpty(response.text)) return response;
       #endregion
 
       #region Commands with required parameters
+      List<GraphUser> users = new List<GraphUser>();
       if (string.IsNullOrEmpty(command.parameters))
       {
-        return $"You need to provide a search value: /whois-at-jis {command.command} <value>";
+        response.text = $"You need to provide a search value: `/whois-at-jis {command.command} <value>`";
       }
-      if (command.command.Equals("email"))
+      else if (command.command.Equals("email"))
       {
         var email = command.parameters;
         var domain = _graphConfiguration["domain"];
-        if (!SlashCommandHandler.isValidEmail(email, domain))
+        if (SlashCommandHandler.isValidEmail(email, domain))
         {
-          return $"You must provide a valid email address with the {domain} domain";
+          users.Add(_slashCommandHandler.getUserWithEmail(email));
         }
-        var user = _slashCommandHandler.getUserWithEmail(email);
-        if (user == null || !user.userPrincipalName.Equals(email, StringComparison.InvariantCultureIgnoreCase))
+        else
         {
-          return $"No user could be found with email address {email}";
+          response.text = $"You must provide a valid email address with the {domain} domain";
         }
-        return _slashCommandHandler.formatUserForSlack(user);
       }
-      if (command.command.Equals("name"))
+      else if (command.command.Equals("name"))
       {
-        var users = _slashCommandHandler.getUsersWithName(command.parameters);
-        if (users.Count.Equals(0))
-        {
-          return $"No users found with a name like {command.parameters}";
-        }
-        return string.Join('\n', _slashCommandHandler.formatUserListForSlack(users));
+        users.AddRange(_slashCommandHandler.getUsersWithName(command.parameters));
       }
-      if (command.command.Equals("withjobtitle"))
+      else if (command.command.Equals("withjobtitle"))
       {
-        var users = _slashCommandHandler.getJobTitleWithName(command.parameters);
-        if (users.Count.Equals(0))
-        {
-          return $"No users found with a job title of {command.parameters}";
-        }
-        return string.Join('\n', _slashCommandHandler.formatUserListForSlack(users));
+        users.AddRange(_slashCommandHandler.getJobTitleWithName(command.parameters));
       }
-      if (command.command.StartsWith("with"))
+      else if (command.command.StartsWith("with"))
       {
         var searchType = command.command.Replace("with", "");
         var plural = $"{searchType}s";
-        var users = _slashCommandHandler.getUsersWithListProperty(plural, command.parameters);
-        if (users.Count.Equals(0))
-        {
-          return $"No users found with {searchType} {command.parameters}\n_Available {plural}:_ {string.Join(", ", _slashCommandHandler.getUniqueValuesForListProperty(plural))}";
-        }
-        return string.Join('\n', _slashCommandHandler.formatUserListForSlack(users));
+        users.AddRange(_slashCommandHandler.getUsersWithListProperty(plural, command.parameters));
       }
       #endregion
-
-      return _slashCommandHandler.getHelpMessage();
+      if (users.Count.Equals(0))
+      {
+        response.text = $"No matches were found for `/whois-at-jis {command.command} {command.parameters}`";
+      }
+      else
+      {
+        response.attachments = SlashCommandHandler.formatUserListForSlack(users);
+      }
+      return response;
     }
   }
 }

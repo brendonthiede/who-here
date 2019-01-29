@@ -13,7 +13,7 @@ namespace WhoIs.At.JIS.Helpers
     private readonly GraphHandler _graphHandler;
     private readonly string _emailDomain;
     private readonly IConfiguration _slackConfiguration;
-    private static List<string> VALID_COMMANDS = new List<string> { "debug", "help", "email", "name", "jobtitlelist", "withjobtitle", "skillslist", "withskill", "interestslist", "withinterest", "projectslist", "withproject" };
+    private static List<string> VALID_COMMANDS = new List<string> { "help", "email", "name", "jobtitlelist", "withjobtitle", "skillslist", "withskill", "interestslist", "withinterest", "projectslist", "withproject" };
     #endregion
 
     public SlashCommandHandler(IConfiguration configuration)
@@ -91,36 +91,37 @@ namespace WhoIs.At.JIS.Helpers
     #endregion
 
     #region Formatters
-    public string formatUserForSlack(GraphUser user)
+    public static Attachment formatUserForSlack(GraphUser user)
     {
-      var profileData = $"*{user.displayName}*\n{user.jobTitle}\n{user.userPrincipalName}";
+      Attachment userAttachment = new Attachment();
+      userAttachment.pretext = $"*{user.displayName}*";
+      userAttachment.title = user.jobTitle;
+      userAttachment.text = user.userPrincipalName;
       if (!string.IsNullOrEmpty(user.aboutMe))
       {
-        profileData += $"\n>{user.aboutMe}";
+        userAttachment.text += $"\n>{user.aboutMe}";
       }
       var projects = new List<string>(user.projects);
       if (projects.Count > 0)
       {
-        profileData += $"\n_Projects:_ {string.Join(", ", user.projects)}";
+        userAttachment.text += $"\n_Projects:_ {string.Join(", ", user.projects)}";
       }
       var skills = new List<string>(user.skills);
       if (skills.Count > 0)
       {
-        profileData += $"\n_Skills:_ {string.Join(", ", user.skills)}";
+        userAttachment.text += $"\n_Skills:_ {string.Join(", ", user.skills)}";
       }
       var interests = new List<string>(user.interests);
       if (interests.Count > 0)
       {
-        profileData += $"\n_Interests:_ {string.Join(", ", user.interests)}";
+        userAttachment.text += $"\n_Interests:_ {string.Join(", ", user.interests)}";
       }
-      return profileData;
-
+      return userAttachment;
     }
 
-    public string formatUserListForSlack(List<GraphUser> users)
+    public static List<Attachment> formatUserListForSlack(List<GraphUser> users)
     {
-      List<string> details = users.Select(user => formatUserForSlack(user)).ToList();
-      return string.Join("\n================\n", details);
+      return users.Select(user => formatUserForSlack(user)).ToList();
     }
     #endregion
 
