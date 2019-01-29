@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
 using WhoIs.At.JIS.Models;
 
 namespace WhoIs.At.JIS.Helpers
@@ -36,11 +37,8 @@ namespace WhoIs.At.JIS.Helpers
       {
         Stopwatch watch = new Stopwatch();
         watch.Start();
-        //Do things
         _isUpdating = true;
         Console.WriteLine("*** Starting update process");
-        // await Task.Run(() =>
-        // {
         var allUsers = getAllMsGraphUsers();
         string json = JsonConvert.SerializeObject(allUsers.ToArray());
 
@@ -49,7 +47,6 @@ namespace WhoIs.At.JIS.Helpers
         watch.Stop();
         Console.WriteLine($"*** Update ran for {watch.Elapsed.TotalSeconds.ToString()} seconds");
         _isUpdating = false;
-        // });
       }
       else
       {
@@ -60,67 +57,82 @@ namespace WhoIs.At.JIS.Helpers
     public List<GraphUser> getAllMsGraphUsers()
     {
       GraphServiceClient graphClient = GetAuthenticatedGraphClient();
-      List<GraphUser> allUsers = new List<GraphUser>();
+      var tasks = new List<Task<List<GraphUser>>>();
       for (char letter = 'A'; letter <= 'Z'; letter++)
       {
-        Console.WriteLine($"*** Pulling users for {letter}");
-        List<QueryOption> options = new List<QueryOption>
-        {
-            new QueryOption("$filter", $"startsWith(mail,'{letter}')"),
-            new QueryOption("$select", "userPrincipalName")
-        };
-        try
-        {
-          var graphResult = graphClient.Users.Request(options).GetAsync().Result;
-          var retVal = new List<string>();
-          foreach (var result in graphResult)
-          {
-            List<QueryOption> userOptions = new List<QueryOption>
-          {
-              new QueryOption("$select", GRAPH_USER_PROPERTIES)
-          };
-            try
-            {
-              if (SlashCommandHandler.isValidEmail(result.UserPrincipalName, _graphConfiguration["domain"]))
-              {
-                GraphUser graphUser = asGraphUser(graphClient.Users[result.UserPrincipalName].Request(userOptions).GetAsync().Result);
-                if (!String.IsNullOrEmpty(graphUser.jobTitle))
-                {
-                  allUsers.Add(asGraphUser(graphClient.Users[result.UserPrincipalName].Request(userOptions).GetAsync().Result));
-                }
+        string currentLetter = letter.ToString();
+        tasks.Add(Task.Run(async () => { return await getMsGraphUsersForLetter(graphClient, currentLetter); }));
+      }
 
-              }
-            }
-            catch (System.Exception)
-            {
-              System.Console.WriteLine($"*** Error encountered trying to pull {result.UserPrincipalName}");
-            }
-          }
-        }
-        catch (System.Exception)
-        {
+      var continuation = Task.WhenAll(tasks);
+      try
+      {
+        continuation.Wait();
+      }
+      catch (AggregateException)
+      { }
 
-          System.Console.WriteLine($"*** Error pulling emails starting with {letter}");
+      List<GraphUser> allUsers = new List<GraphUser>();
+      if (continuation.Status == TaskStatus.RanToCompletion)
+      {
+        foreach (var result in continuation.Result)
+        {
+          allUsers.AddRange(result);
         }
       }
+      // Display information on faulted tasks.
+      else
+      {
+        foreach (var task in tasks)
+        {
+          Console.WriteLine($"Task {task.Id}: {task.Status}");
+        }
+      }
+
       return allUsers;
     }
 
-    public GraphUser getMsGraphResultsForEmail(string email)
+    private async Task<List<GraphUser>> getMsGraphUsersForLetter(GraphServiceClient graphClient, string currentLetter)
     {
-      GraphServiceClient graphClient = GetAuthenticatedGraphClient();
-      return getMsGraphResultsForEmail(graphClient, email);
-    }
-
-    public GraphUser getMsGraphResultsForEmail(GraphServiceClient graphClient, string email)
-    {
+      List<GraphUser> letterUsers = new List<GraphUser>();
+      Console.WriteLine($"*** Pulling users for {currentLetter}");
       List<QueryOption> options = new List<QueryOption>
         {
-            new QueryOption("$select", GRAPH_USER_PROPERTIES)
+          new QueryOption("$filter", $"startsWith(mail,'{currentLetter}')"),
+          new QueryOption("$select", "userPrincipalName")
         };
-
-      var graphResult = graphClient.Users[email].Request(options).GetAsync().Result;
-      return asGraphUser(graphResult);
+      try
+      {
+        var graphResult = await graphClient.Users.Request(options).GetAsync();
+        var retVal = new List<string>();
+        foreach (var result in graphResult.CurrentPage)
+        {
+          List<QueryOption> userOptions = new List<QueryOption>
+            {
+              new QueryOption("$select", GRAPH_USER_PROPERTIES)
+            };
+          try
+          {
+            if (SlashCommandHandler.isValidEmail(result.UserPrincipalName, _graphConfiguration["domain"]))
+            {
+              GraphUser graphUser = asGraphUser(graphClient.Users[result.UserPrincipalName].Request(userOptions).GetAsync().Result);
+              if (!String.IsNullOrEmpty(graphUser.jobTitle))
+              {
+                letterUsers.Add(asGraphUser(graphClient.Users[result.UserPrincipalName].Request(userOptions).GetAsync().Result));
+              }
+            }
+          }
+          catch (System.Exception)
+          {
+            System.Console.WriteLine($"*** Error encountered trying to pull {result.UserPrincipalName}");
+          }
+        }
+      }
+      catch (System.Exception)
+      {
+        System.Console.WriteLine($"*** Error pulling emails starting with {currentLetter}");
+      }
+      return letterUsers;
     }
 
     private GraphServiceClient GetAuthenticatedGraphClient()

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using System;
+using System.Threading.Tasks;
 using WhoIs.At.JIS.Helpers;
 using WhoIs.At.JIS.Models;
 
@@ -78,6 +79,7 @@ namespace WhoIs.At.JIS.Controllers
           text = $"The host {responseUrl.Host} is not allowed"
         };
       }
+      Task.Run(() => _graphHandler.updateUserCache());
       return new SlackResponse
       {
         response_type = "ephemeral",
