@@ -1,5 +1,3 @@
-using Microsoft.Extensions.Configuration;
-using System;
 using WhoIs.At.JIS.Helpers;
 using Xunit;
 

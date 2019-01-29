@@ -1,13 +1,7 @@
 using Microsoft.Extensions.Configuration;
-using Microsoft.Graph;
-using Microsoft.Identity.Client;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using WhoIs.At.JIS.Models;
 
 namespace WhoIs.At.JIS.Helpers

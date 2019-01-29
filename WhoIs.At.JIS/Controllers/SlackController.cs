@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using System;
-using System.Net.Http;
 using WhoIs.At.JIS.Helpers;
 using WhoIs.At.JIS.Models;
 
