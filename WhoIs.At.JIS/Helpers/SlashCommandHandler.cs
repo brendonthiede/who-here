@@ -130,7 +130,7 @@ namespace WhoIs.At.JIS.Helpers
     {
       return @"Available commands:
   `help`: showsthis message"
-  + $"\n`email <email@{_emailDomain}>`: shows information for the given email address"
+  + $"\n`  email <email@{_emailDomain}>`: shows information for the given email address"
   + @"\n`name <search text>`: shows matches where the display name (formatted as <first> <last>) starts with the search text
   `jobtitlelist`: shows a list of all job titles listed for users
   `projectslist`: shows a list of all projects that any users have identified
@@ -139,7 +139,7 @@ namespace WhoIs.At.JIS.Helpers
   `withinterest <interest>`: shows all users that have identified the given interest in their profile
   `skillslist`: shows a list of all skills that any users have identified
   `withskill <skill>`: shows all users that have identified the given skill in their profile
-  >Make sure your profile is up to date at https://delve-gcc.office.com";
+>Make sure your profile is up to date at https://delve-gcc.office.com";
     }
 
     public List<GraphUser> getUsersWithName(string name)
