@@ -3,7 +3,7 @@ using Xunit;
 
 namespace WhoIs.At.JIS.Tests
 {
-  public class SlackRespoonseTest
+  public class SlackResponseTest
   {
     [Fact]
     public void TestResponseTypeIsAlwaysEphemeral ()

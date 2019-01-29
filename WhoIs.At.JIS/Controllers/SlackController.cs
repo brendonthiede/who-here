@@ -78,10 +78,7 @@ namespace WhoIs.At.JIS.Controllers
         };
       }
       Task.Run(() => _graphHandler.updateUserCache());
-      return new SlackResponse
-      {
-        text = $"{EvaluateSlackCommand(slashCommandPayload)}\n>Make sure your profile is up to date at https://delve-gcc.office.com"
-      };
+      return EvaluateSlackCommand(slashCommandPayload);
     }
 
     private SlackResponse EvaluateSlackCommand(SlashCommandPayload slashCommandPayload)

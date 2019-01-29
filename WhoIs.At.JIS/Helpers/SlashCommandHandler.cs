@@ -138,7 +138,8 @@ namespace WhoIs.At.JIS.Helpers
   `interestslist`: shows a list of all interests that any users have identified
   `withinterest <interest>`: shows all users that have identified the given interest in their profile
   `skillslist`: shows a list of all skills that any users have identified
-  `withskill <skill>`: shows all users that have identified the given skill in their profile";
+  `withskill <skill>`: shows all users that have identified the given skill in their profile
+  >Make sure your profile is up to date at https://delve-gcc.office.com";
     }
 
     public List<GraphUser> getUsersWithName(string name)
