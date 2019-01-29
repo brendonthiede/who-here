@@ -133,7 +133,7 @@ namespace WhoIs.At.JIS.Controllers
         var users = _slashCommandHandler.getUsersWithName(command.parameters);
         if (users.Count.Equals(0))
         {
-          return $"No users found with a name that starts with {command.parameters}";
+          return $"No users found with a name like {command.parameters}";
         }
         return string.Join('\n', _slashCommandHandler.formatUserListForSlack(users));
       }
