@@ -13,7 +13,6 @@ namespace WhoIs.At.JIS.Controllers
   {
     private readonly IConfiguration _slackConfiguration;
     private readonly IConfiguration _graphConfiguration;
-    private readonly HttpClient _httpClient;
     private readonly SlashCommandHandler _slashCommandHandler;
     private readonly GraphHandler _graphHandler;
 
@@ -23,7 +22,6 @@ namespace WhoIs.At.JIS.Controllers
       _graphConfiguration = configuration.GetSection("graph");
       _slashCommandHandler = new SlashCommandHandler(configuration);
       _graphHandler = new GraphHandler(configuration);
-      _httpClient = new HttpClient();
     }
 
     // GET api/slack
