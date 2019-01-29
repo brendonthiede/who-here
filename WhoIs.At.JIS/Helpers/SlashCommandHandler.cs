@@ -130,7 +130,7 @@ namespace WhoIs.At.JIS.Helpers
     {
       return @"Available commands:
   `help`: showsthis message"
-  + $"\n`  email <email@{_emailDomain}>`: shows information for the given email address"
+  + $"\n  `email <email@{_emailDomain}>`: shows information for the given email address"
   + @"\n`name <search text>`: shows matches where the display name (formatted as <first> <last>) starts with the search text
   `jobtitlelist`: shows a list of all job titles listed for users
   `projectslist`: shows a list of all projects that any users have identified
