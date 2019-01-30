@@ -98,10 +98,10 @@ namespace WhoIs.At.JIS.Helpers
     public string getHelpMessage()
     {
       return @"Available commands:
-  `help`: showsthis message"
+  `help`: shows this message"
   + $"\n  `email <email@{_emailDomain}>`: shows information for the given email address\n"
   + @"  `name <search text>`: shows matches where the display name (formatted as <first> <last>) starts with the search text
-  Other available properties that you can search on: job title, interests, skills projects
+  Other available properties that you can search on: `job title`, `interests`, `skills`, `projects`
 >Make sure your profile is up to date at https://delve-gcc.office.com";
     }
 
