@@ -31,6 +31,10 @@ namespace WhoIs.At.JIS.Helpers
       _graphHandler = new GraphHandler(configuration);
     }
 
+    public void setGraphCacheLocation(string cacheLocation) {
+      _graphHandler.cacheLocation = cacheLocation;
+    }
+
     #region Validators and Converters
     public static bool isValidCommand(string command)
     {
@@ -142,34 +146,14 @@ namespace WhoIs.At.JIS.Helpers
 >Make sure your profile is up to date at https://delve-gcc.office.com";
     }
 
-    public List<GraphUser> getUsersWithName(string name)
-    {
-      return getUsersWithName(_graphHandler.getCachedUsers(), name);
-    }
-
-    public List<GraphUser> getUsersWithName(List<GraphUser> graphUsers, string name)
-    {
-      return graphUsers.Where(user => user.displayName.Contains(name, StringComparison.InvariantCultureIgnoreCase)).ToList();
-    }
-
     public List<GraphUser> getJobTitleWithName(string title)
     {
-      return getJobTitleWithName(_graphHandler.getCachedUsers(), title);
-    }
-
-    public List<GraphUser> getJobTitleWithName(List<GraphUser> graphUsers, string title)
-    {
-      return graphUsers.Where(user => user.jobTitle.Contains(title, StringComparison.InvariantCultureIgnoreCase)).ToList();
+      return _graphHandler.getCachedUsers().Where(user => user.jobTitle.Contains(title, StringComparison.InvariantCultureIgnoreCase)).ToList();
     }
 
     public GraphUser getUserWithEmail(string email)
     {
-      return getUserWithEmail(_graphHandler.getCachedUsers(), email);
-    }
-
-    public GraphUser getUserWithEmail(List<GraphUser> graphUsers, string email)
-    {
-      var matches = graphUsers.Where(user => user.userPrincipalName.Equals(email, StringComparison.InvariantCultureIgnoreCase)).ToList();
+      var matches = _graphHandler.getCachedUsers().Where(user => user.userPrincipalName.Equals(email, StringComparison.InvariantCultureIgnoreCase)).ToList();
       if (matches.Count != 1)
       {
         return null;
@@ -179,13 +163,8 @@ namespace WhoIs.At.JIS.Helpers
 
     public List<string> getUniqueValuesForListProperty(string propertyName)
     {
-      return getUniqueValuesForListProperty(_graphHandler.getCachedUsers(), propertyName);
-    }
-
-    public List<string> getUniqueValuesForListProperty(List<GraphUser> graphUsers, string propertyName)
-    {
       var dict = new Dictionary<string, string>();
-      foreach (var graphUser in graphUsers)
+      foreach (var graphUser in _graphHandler.getCachedUsers())
       {
         foreach (var value in (List<string>)graphUser.GetType().GetProperty(propertyName).GetValue(graphUser))
         {
@@ -197,13 +176,8 @@ namespace WhoIs.At.JIS.Helpers
 
     public List<string> getUniqueValuesForStringProperty(string propertyName)
     {
-      return getUniqueValuesForStringProperty(_graphHandler.getCachedUsers(), propertyName);
-    }
-
-    public List<string> getUniqueValuesForStringProperty(List<GraphUser> graphUsers, string propertyName)
-    {
       var dict = new Dictionary<string, string>();
-      foreach (var graphUser in graphUsers)
+      foreach (var graphUser in _graphHandler.getCachedUsers())
       {
         var value = (string)graphUser.GetType().GetProperty(propertyName).GetValue(graphUser, null);
         if (!string.IsNullOrEmpty(value))
@@ -214,14 +188,14 @@ namespace WhoIs.At.JIS.Helpers
       return dict.Values.ToList();
     }
 
-    public List<GraphUser> getUsersWithListProperty(string propertyName, string propertyValue)
+    public List<GraphUser> getUsersWithStringProperty(string propertyName, string propertyValue)
     {
-      return getUsersWithListProperty(_graphHandler.getCachedUsers(), propertyName, propertyValue);
+      return _graphHandler.getCachedUsers().Where(user => ((string)user.GetType().GetProperty(propertyName).GetValue(user)).Contains(propertyValue, StringComparison.InvariantCultureIgnoreCase)).ToList();
     }
 
-    public List<GraphUser> getUsersWithListProperty(List<GraphUser> graphUsers, string propertyName, string propertyValue)
+    public List<GraphUser> getUsersWithListProperty(string propertyName, string propertyValue)
     {
-      return graphUsers.Where(user => ((List<string>)user.GetType().GetProperty(propertyName).GetValue(user)).Contains(propertyValue, StringComparer.InvariantCultureIgnoreCase)).ToList();
+      return _graphHandler.getCachedUsers().Where(user => ((List<string>)user.GetType().GetProperty(propertyName).GetValue(user)).Contains(propertyValue, StringComparer.InvariantCultureIgnoreCase)).ToList();
     }
     #endregion
   }

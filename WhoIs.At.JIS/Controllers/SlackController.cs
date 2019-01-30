@@ -123,11 +123,11 @@ namespace WhoIs.At.JIS.Controllers
       }
       else if (command.command.Equals("name"))
       {
-        users.AddRange(_slashCommandHandler.getUsersWithName(command.parameters));
+        users.AddRange(_slashCommandHandler.getUsersWithStringProperty("displayName", command.parameters));
       }
       else if (command.command.Equals("withjobtitle"))
       {
-        users.AddRange(_slashCommandHandler.getJobTitleWithName(command.parameters));
+        users.AddRange(_slashCommandHandler.getUsersWithStringProperty("jobTitle", command.parameters));
       }
       else if (command.command.StartsWith("with"))
       {

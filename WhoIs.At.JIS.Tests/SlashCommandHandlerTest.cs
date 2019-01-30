@@ -5,6 +5,15 @@ namespace WhoIs.At.JIS.Tests
 {
   public class SlashCommandHandlerTest
   {
+    private readonly string TEST_DATA_PATH = $"{System.Environment.CurrentDirectory}\\..\\..\\..\\testdata.json";
+    private readonly SlashCommandHandler slashCommandHandler;
+
+    public SlashCommandHandlerTest()
+    {
+      slashCommandHandler = new SlashCommandHandler(null);
+      slashCommandHandler.setGraphCacheLocation(TEST_DATA_PATH);
+    }
+
     [Fact]
     public void TestEmptyString()
     {
@@ -46,10 +55,7 @@ namespace WhoIs.At.JIS.Tests
     [Fact]
     public void TestGetSkillList()
     {
-      SlashCommandHandler slashCommandHandler = new SlashCommandHandler(null);
-      GraphHandler graphHandler = new GraphHandler(null);
-      var cachedUsers = graphHandler.getCachedUsers($"{System.Environment.CurrentDirectory}\\..\\..\\..\\testdata.json");
-      var skills = slashCommandHandler.getUniqueValuesForListProperty(cachedUsers, "skills");
+      var skills = slashCommandHandler.getUniqueValuesForListProperty("skills");
       Assert.Equal(9, skills.Count);
       Assert.Contains("Database Administration", skills);
       Assert.Contains("DevOps", skills);
@@ -65,10 +71,7 @@ namespace WhoIs.At.JIS.Tests
     [Fact]
     public void TestGetJobTitleList()
     {
-      SlashCommandHandler slashCommandHandler = new SlashCommandHandler(null);
-      GraphHandler graphHandler = new GraphHandler(null);
-      var cachedUsers = graphHandler.getCachedUsers($"{System.Environment.CurrentDirectory}\\..\\..\\..\\testdata.json");
-      var titles = slashCommandHandler.getUniqueValuesForStringProperty(cachedUsers, "jobTitle");
+      var titles = slashCommandHandler.getUniqueValuesForStringProperty("jobTitle");
       Assert.Equal(5, titles.Count);
       Assert.Contains("Code Slinger", titles);
       Assert.Contains("Database Administrator", titles);
@@ -80,10 +83,7 @@ namespace WhoIs.At.JIS.Tests
     [Fact]
     public void TestGetUsersWithSkill()
     {
-      SlashCommandHandler slashCommandHandler = new SlashCommandHandler(null);
-      GraphHandler graphHandler = new GraphHandler(null);
-      var cachedUsers = graphHandler.getCachedUsers($"{System.Environment.CurrentDirectory}\\..\\..\\..\\testdata.json");
-      var users = slashCommandHandler.getUsersWithListProperty(cachedUsers, "skills", "DevOps");
+      var users = slashCommandHandler.getUsersWithListProperty("skills", "DevOps");
       Assert.Equal(2, users.Count);
     }
   }

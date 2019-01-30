@@ -15,7 +15,7 @@ namespace WhoIs.At.JIS.Helpers
   {
     private readonly IConfiguration _graphConfiguration;
     private static bool _isUpdating;
-    private const string CACHE_FILE = "snapShot.json";
+    private const string DEFAULT_CACHE_FILE = "snapShot.json";
     private const string GRAPH_USER_PROPERTIES = "displayName,jobTitle,userPrincipalName,interests,skills,pastProjects,aboutMe";
 
     public GraphHandler(IConfiguration configuration)
@@ -29,7 +29,10 @@ namespace WhoIs.At.JIS.Helpers
       {
         _graphConfiguration = null;
       }
+      cacheLocation = DEFAULT_CACHE_FILE;
     }
+
+    public string cacheLocation { get; set; }
 
     public void updateUserCache()
     {
@@ -43,7 +46,7 @@ namespace WhoIs.At.JIS.Helpers
         string json = JsonConvert.SerializeObject(allUsers.ToArray());
 
         //write string to file
-        System.IO.File.WriteAllText(CACHE_FILE, json);
+        System.IO.File.WriteAllText(this.cacheLocation, json);
         watch.Stop();
         Console.WriteLine($"*** Update ran for {watch.Elapsed.TotalSeconds.ToString()} seconds");
         _isUpdating = false;
@@ -160,20 +163,14 @@ namespace WhoIs.At.JIS.Helpers
 
     public List<GraphUser> getCachedUsers()
     {
-      return getCachedUsers(CACHE_FILE);
-
-    }
-
-    public List<GraphUser> getCachedUsers(string filePath)
-    {
-      using (StreamReader r = new StreamReader(filePath))
+      using (StreamReader r = new StreamReader(this.cacheLocation))
       {
         string json = r.ReadToEnd();
         return JsonConvert.DeserializeObject<List<GraphUser>>(json);
       }
     }
 
-    public static GraphUser asGraphUser(User user)
+    private static GraphUser asGraphUser(User user)
     {
       try
       {
