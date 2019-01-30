@@ -69,14 +69,6 @@ namespace WhoIs.At.JIS.Controllers
           text = "Invalid authentication token"
         };
       }
-      var responseUrl = new Uri(slashCommandPayload.response_url);
-      if (!responseUrl.Host.Equals("hooks.slack.com"))
-      {
-        return new SlackResponse
-        {
-          text = $"The host {responseUrl.Host} is not allowed"
-        };
-      }
       Task.Run(() => _graphHandler.updateUserCache());
       return EvaluateSlackCommand(slashCommandPayload);
     }
