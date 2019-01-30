@@ -55,5 +55,16 @@ namespace WhoIs.At.JIS.Tests
       Assert.Equal("Support Technician", response.attachments[0].title);
       Assert.StartsWith("CarlDamico@mail.com", response.attachments[0].text);
     }
+
+    [Fact]
+    public void TestInterestedInRunning()
+    {
+      var response = slashCommandHandler.EvaluateSlackCommand("interested in running");
+      Assert.Equal(2, response.attachments.Count);
+      Assert.Equal("*Clyde Reynolds*", response.attachments[0].pretext);
+      Assert.StartsWith("ClydeReynolds@mail.com", response.attachments[0].text);
+      Assert.Equal("*Larry Gonzalez*", response.attachments[1].pretext);
+      Assert.StartsWith("LarryGonzalez@mail.com", response.attachments[1].text);
+    }
   }
 }

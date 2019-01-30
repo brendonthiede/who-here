@@ -152,25 +152,35 @@ namespace WhoIs.At.JIS.Helpers
       {
         users = getUsersWithListProperty(property.graphUserProperty, filter, matchType, _graphHandler.getCachedUsers());
       }
-      return users.OrderBy(user => (string)user.GetType().GetProperty(property.graphUserProperty.ToString()).GetValue(user) + user.userPrincipalName).ToList();
+      return users;
     }
 
     public List<GraphUser> getUsersWithStringProperty(GraphUserProperty propertyName, string propertyValue, MatchType matchType, List<GraphUser> cachedUsers)
     {
+      List<GraphUser> users;
       if (matchType.Equals(MatchType.Equals))
       {
-        return cachedUsers.Where(user => ((string)user.GetType().GetProperty(propertyName.ToString()).GetValue(user)).Equals(propertyValue, StringComparison.InvariantCultureIgnoreCase)).ToList();
+        users = cachedUsers.Where(user => ((string)user.GetType().GetProperty(propertyName.ToString()).GetValue(user)).Equals(propertyValue, StringComparison.InvariantCultureIgnoreCase)).ToList();
       }
-      return cachedUsers.Where(user => ((string)user.GetType().GetProperty(propertyName.ToString()).GetValue(user)).Contains(propertyValue, StringComparison.InvariantCultureIgnoreCase)).ToList();
+      else
+      {
+        users = cachedUsers.Where(user => ((string)user.GetType().GetProperty(propertyName.ToString()).GetValue(user)).Contains(propertyValue, StringComparison.InvariantCultureIgnoreCase)).ToList();
+      }
+      return users.OrderBy(user => (string)user.GetType().GetProperty(propertyName.ToString()).GetValue(user)).ThenBy(user => user.displayName).ToList();
     }
 
     public List<GraphUser> getUsersWithListProperty(GraphUserProperty propertyName, string propertyValue, MatchType matchType, List<GraphUser> cachedUsers)
     {
+      List<GraphUser> users;
       if (matchType.Equals(MatchType.Equals))
       {
-        return cachedUsers.Where(user => ((List<string>)user.GetType().GetProperty(propertyName.ToString()).GetValue(user)).Contains(propertyValue, StringComparer.InvariantCultureIgnoreCase)).ToList();
+        users = cachedUsers.Where(user => ((List<string>)user.GetType().GetProperty(propertyName.ToString()).GetValue(user)).Contains(propertyValue, StringComparer.InvariantCultureIgnoreCase)).ToList();
       }
-      return cachedUsers.Where(user => ((List<string>)user.GetType().GetProperty(propertyName.ToString()).GetValue(user)).Any(property => ((string)property.GetType().GetProperty(propertyName.ToString()).GetValue(property)).Contains(propertyValue, StringComparison.InvariantCultureIgnoreCase))).ToList();
+      else
+      {
+        users = cachedUsers.Where(user => ((List<string>)user.GetType().GetProperty(propertyName.ToString()).GetValue(user)).Any(property => property.Contains(propertyValue, StringComparison.InvariantCultureIgnoreCase))).ToList();
+      }
+      return users.OrderBy(user => user.displayName).ToList();
     }
     #endregion
 
