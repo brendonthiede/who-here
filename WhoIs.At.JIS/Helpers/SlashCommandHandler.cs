@@ -13,7 +13,6 @@ namespace WhoIs.At.JIS.Helpers
     private readonly GraphHandler _graphHandler;
     private readonly string _emailDomain;
     private readonly IConfiguration _slackConfiguration;
-    private static List<string> VALID_COMMANDS = new List<string> { "help", "email", "name", "jobtitlelist", "withjobtitle", "skillslist", "withskill", "interestslist", "withinterest", "projectslist", "withproject" };
     #endregion
 
     public SlashCommandHandler(IConfiguration configuration)
@@ -31,27 +30,18 @@ namespace WhoIs.At.JIS.Helpers
       _graphHandler = new GraphHandler(configuration);
     }
 
-    public void setGraphCacheLocation(string cacheLocation) {
+    public void setGraphCacheLocation(string cacheLocation)
+    {
       _graphHandler.cacheLocation = cacheLocation;
     }
 
     #region Validators and Converters
-    public static bool isValidCommand(string command)
-    {
-      return VALID_COMMANDS.Contains(command);
-    }
-
-    public static bool isValidEmail(string email)
-    {
-      return isValidEmail(email, null);
-    }
-
     public static bool isValidEmail(string email, string domain)
     {
       try
       {
         var addr = new System.Net.Mail.MailAddress(email);
-        if (String.IsNullOrEmpty(domain))
+        if (string.IsNullOrEmpty(domain))
         {
           return addr.Address == email;
         }
@@ -65,42 +55,17 @@ namespace WhoIs.At.JIS.Helpers
         return false;
       }
     }
-    public static WhoIsCommand getCommandFromString(string text)
-    {
-      var whoIsCommand = new WhoIsCommand();
-      whoIsCommand.command = "help";
-      var paramArray = text.Split(' ');
-      if (paramArray.Length > 0 && paramArray[0].Length > 0)
-      {
-        whoIsCommand.command = paramArray[0].ToLower();
-        if (isValidCommand(whoIsCommand.command))
-        {
-          var tmp = new List<string>(text.Split(' '));
-          tmp.RemoveAt(0);
-          paramArray = tmp.ToArray();
-        }
-        else if (isValidEmail(whoIsCommand.command))
-        {
-          paramArray = new string[] { whoIsCommand.command };
-          whoIsCommand.command = "email";
-        }
-        else
-        {
-          whoIsCommand.command = "name";
-        }
-      }
-      whoIsCommand.parameters = string.Join(' ', paramArray);
-      return whoIsCommand;
-    }
     #endregion
 
     #region Formatters
     public static Attachment formatUserForSlack(GraphUser user)
     {
-      Attachment userAttachment = new Attachment();
-      userAttachment.pretext = $"*{user.displayName}*";
-      userAttachment.title = user.jobTitle;
-      userAttachment.text = user.userPrincipalName;
+      Attachment userAttachment = new Attachment
+      {
+        pretext = $"*{user.displayName}*",
+        title = user.jobTitle,
+        text = user.userPrincipalName
+      };
       if (!string.IsNullOrEmpty(user.aboutMe))
       {
         userAttachment.text += $"\n>{user.aboutMe}";
@@ -134,52 +99,27 @@ namespace WhoIs.At.JIS.Helpers
     {
       return @"Available commands:
   `help`: showsthis message"
-  + $"\n  `email <email@{_emailDomain}>`: shows information for the given email address"
-  + @"\n`name <search text>`: shows matches where the display name (formatted as <first> <last>) starts with the search text
-  `jobtitlelist`: shows a list of all job titles listed for users
-  `projectslist`: shows a list of all projects that any users have identified
-  `withproject <project>`: shows all users that have identified the given project in their profile
-  `interestslist`: shows a list of all interests that any users have identified
-  `withinterest <interest>`: shows all users that have identified the given interest in their profile
-  `skillslist`: shows a list of all skills that any users have identified
-  `withskill <skill>`: shows all users that have identified the given skill in their profile
+  + $"\n  `email <email@{_emailDomain}>`: shows information for the given email address\n"
+  + @"  `name <search text>`: shows matches where the display name (formatted as <first> <last>) starts with the search text
+  Other available properties that you can search on: job title, interests, skills projects
 >Make sure your profile is up to date at https://delve-gcc.office.com";
     }
 
-    public List<GraphUser> getJobTitleWithName(string title)
+    public List<string> getUniqueValuesForProperty(SearchProperty property)
     {
-      return _graphHandler.getCachedUsers().Where(user => user.jobTitle.Contains(title, StringComparison.InvariantCultureIgnoreCase)).ToList();
-    }
-
-    public GraphUser getUserWithEmail(string email)
-    {
-      var matches = _graphHandler.getCachedUsers().Where(user => user.userPrincipalName.Equals(email, StringComparison.InvariantCultureIgnoreCase)).ToList();
-      if (matches.Count != 1)
+      if (property.propertyType.Equals(PropertyType.String))
       {
-        return null;
+        return getUniqueValuesForStringProperty(property.graphUserProperty, _graphHandler.getCachedUsers());
       }
-      return matches[0];
+      return getUniqueValuesForListProperty(property.graphUserProperty, _graphHandler.getCachedUsers());
     }
 
-    public List<string> getUniqueValuesForListProperty(string propertyName)
+    public List<string> getUniqueValuesForStringProperty(GraphUserProperty propertyName, List<GraphUser> cachedUsers)
     {
       var dict = new Dictionary<string, string>();
-      foreach (var graphUser in _graphHandler.getCachedUsers())
+      foreach (var graphUser in cachedUsers)
       {
-        foreach (var value in (List<string>)graphUser.GetType().GetProperty(propertyName).GetValue(graphUser))
-        {
-          dict[value] = value;
-        }
-      }
-      return dict.Values.ToList();
-    }
-
-    public List<string> getUniqueValuesForStringProperty(string propertyName)
-    {
-      var dict = new Dictionary<string, string>();
-      foreach (var graphUser in _graphHandler.getCachedUsers())
-      {
-        var value = (string)graphUser.GetType().GetProperty(propertyName).GetValue(graphUser, null);
+        var value = (string)graphUser.GetType().GetProperty(propertyName.ToString()).GetValue(graphUser, null);
         if (!string.IsNullOrEmpty(value))
         {
           dict[value] = value;
@@ -188,15 +128,82 @@ namespace WhoIs.At.JIS.Helpers
       return dict.Values.ToList();
     }
 
-    public List<GraphUser> getUsersWithStringProperty(string propertyName, string propertyValue)
+    public List<string> getUniqueValuesForListProperty(GraphUserProperty propertyName, List<GraphUser> cachedUsers)
     {
-      return _graphHandler.getCachedUsers().Where(user => ((string)user.GetType().GetProperty(propertyName).GetValue(user)).Contains(propertyValue, StringComparison.InvariantCultureIgnoreCase)).ToList();
+      var dict = new Dictionary<string, string>();
+      foreach (var graphUser in cachedUsers)
+      {
+        foreach (var value in (List<string>)graphUser.GetType().GetProperty(propertyName.ToString()).GetValue(graphUser))
+        {
+          dict[value] = value;
+        }
+      }
+      return dict.Values.ToList();
     }
 
-    public List<GraphUser> getUsersWithListProperty(string propertyName, string propertyValue)
+    public List<GraphUser> getUsersWithProperty(SearchProperty property, string filter, MatchType matchType)
     {
-      return _graphHandler.getCachedUsers().Where(user => ((List<string>)user.GetType().GetProperty(propertyName).GetValue(user)).Contains(propertyValue, StringComparer.InvariantCultureIgnoreCase)).ToList();
+      List<GraphUser> users;
+      if (property.propertyType.Equals(PropertyType.String))
+      {
+        users = getUsersWithStringProperty(property.graphUserProperty, filter, matchType, _graphHandler.getCachedUsers());
+      }
+      else
+      {
+        users = getUsersWithListProperty(property.graphUserProperty, filter, matchType, _graphHandler.getCachedUsers());
+      }
+      return users.OrderBy(user => (string)user.GetType().GetProperty(property.graphUserProperty.ToString()).GetValue(user) + user.userPrincipalName).ToList();
+    }
+
+    public List<GraphUser> getUsersWithStringProperty(GraphUserProperty propertyName, string propertyValue, MatchType matchType, List<GraphUser> cachedUsers)
+    {
+      if (matchType.Equals(MatchType.Equals))
+      {
+        return cachedUsers.Where(user => ((string)user.GetType().GetProperty(propertyName.ToString()).GetValue(user)).Equals(propertyValue, StringComparison.InvariantCultureIgnoreCase)).ToList();
+      }
+      return cachedUsers.Where(user => ((string)user.GetType().GetProperty(propertyName.ToString()).GetValue(user)).Contains(propertyValue, StringComparison.InvariantCultureIgnoreCase)).ToList();
+    }
+
+    public List<GraphUser> getUsersWithListProperty(GraphUserProperty propertyName, string propertyValue, MatchType matchType, List<GraphUser> cachedUsers)
+    {
+      if (matchType.Equals(MatchType.Equals))
+      {
+        return cachedUsers.Where(user => ((List<string>)user.GetType().GetProperty(propertyName.ToString()).GetValue(user)).Contains(propertyValue, StringComparer.InvariantCultureIgnoreCase)).ToList();
+      }
+      return cachedUsers.Where(user => ((List<string>)user.GetType().GetProperty(propertyName.ToString()).GetValue(user)).Any(property => ((string)property.GetType().GetProperty(propertyName.ToString()).GetValue(property)).Contains(propertyValue, StringComparison.InvariantCultureIgnoreCase))).ToList();
     }
     #endregion
+
+    public SlackResponse EvaluateSlackCommand(string text)
+    {
+      SlackResponse response = new SlackResponse();
+      WhoIsContext context = TextToIntentParser.getPropertyIntentFromText(text);
+      switch (context.action)
+      {
+        case ActionType.Help:
+          response.text = getHelpMessage();
+          break;
+        case ActionType.List:
+          response.text = $"_Available {context.property.plural}:_ {string.Join(", ", getUniqueValuesForProperty(context.property))}";
+          break;
+        case ActionType.Search:
+          if (context.property.graphUserProperty.Equals(GraphUserProperty.userPrincipalName) && !SlashCommandHandler.isValidEmail(context.filter, _emailDomain))
+          {
+            response.text = $"You must provide a valid email address with the {_emailDomain} domain";
+            break;
+          }
+          List<GraphUser> matchingUsers = getUsersWithProperty(context.property, context.filter, context.matchType);
+          if (matchingUsers.Count.Equals(0))
+          {
+            response.text = $"No users were found with {context.property.singular} {context.filter}";
+          }
+          else
+          {
+            response.attachments = SlashCommandHandler.formatUserListForSlack(matchingUsers);
+          }
+          break;
+      }
+      return response;
+    }
   }
 }

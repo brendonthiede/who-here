@@ -17,74 +17,43 @@ namespace WhoIs.At.JIS.Tests
     [Fact]
     public void TestEmptyString()
     {
-      var whoIsCommand = SlashCommandHandler.getCommandFromString("");
-      Assert.Equal("help", whoIsCommand.command);
+      var response = slashCommandHandler.EvaluateSlackCommand("");
+      var helpText = slashCommandHandler.getHelpMessage();
+      Assert.Equal(helpText, response.text);
     }
 
     [Fact]
     public void TestHelpString()
     {
-      var whoIsCommand = SlashCommandHandler.getCommandFromString("Help");
-      Assert.Equal("help", whoIsCommand.command);
+      var response = slashCommandHandler.EvaluateSlackCommand("help");
+      var helpText = slashCommandHandler.getHelpMessage();
+      Assert.Equal(helpText, response.text);
     }
 
     [Fact]
-    public void TestEmailString()
+    public void TestUnrecognizedTextDefaultingToName()
     {
-      var whoIsCommand = SlashCommandHandler.getCommandFromString("test@mail.com");
-      Assert.Equal("email", whoIsCommand.command);
-      Assert.Equal("test@mail.com", whoIsCommand.parameters);
+      var response = slashCommandHandler.EvaluateSlackCommand("Frank Abagnale Jr.");
+      Assert.Equal("No users were found with name Frank Abagnale Jr.", response.text);
     }
 
     [Fact]
-    public void TestNameString()
+    public void TestEmailWithNoMatch()
     {
-      var whoIsCommand = SlashCommandHandler.getCommandFromString("That Guy");
-      Assert.Equal("name", whoIsCommand.command);
-      Assert.Equal("That Guy", whoIsCommand.parameters);
+      var response = slashCommandHandler.EvaluateSlackCommand("noreply@mail.com");
+      Assert.Equal("No users were found with email noreply@mail.com", response.text);
     }
 
     [Fact]
-    public void TestTwoPartEmailString()
+    public void TestEmailWithMatch()
     {
-      var whoIsCommand = SlashCommandHandler.getCommandFromString("email test@mail.com");
-      Assert.Equal("email", whoIsCommand.command);
-      Assert.Equal("test@mail.com", whoIsCommand.parameters);
-    }
-
-    [Fact]
-    public void TestGetSkillList()
-    {
-      var skills = slashCommandHandler.getUniqueValuesForListProperty("skills");
-      Assert.Equal(9, skills.Count);
-      Assert.Contains("Database Administration", skills);
-      Assert.Contains("DevOps", skills);
-      Assert.Contains("JavaScript", skills);
-      Assert.Contains("Functional Programming", skills);
-      Assert.Contains("agile", skills);
-      Assert.Contains("Scrum", skills);
-      Assert.Contains("Kanban", skills);
-      Assert.Contains("SAFe", skills);
-      Assert.Contains("Troubleshooting", skills);
-    }
-
-    [Fact]
-    public void TestGetJobTitleList()
-    {
-      var titles = slashCommandHandler.getUniqueValuesForStringProperty("jobTitle");
-      Assert.Equal(5, titles.Count);
-      Assert.Contains("Code Slinger", titles);
-      Assert.Contains("Database Administrator", titles);
-      Assert.Contains("Facilities", titles);
-      Assert.Contains("DevOps Evangelist", titles);
-      Assert.Contains("Support Technician", titles);
-    }
-
-    [Fact]
-    public void TestGetUsersWithSkill()
-    {
-      var users = slashCommandHandler.getUsersWithListProperty("skills", "DevOps");
-      Assert.Equal(2, users.Count);
+      var response = slashCommandHandler.EvaluateSlackCommand("CarlDamico@mail.com");
+      Assert.Equal("ephemeral", response.response_type);
+      Assert.Null(response.text);
+      Assert.Single(response.attachments);
+      Assert.Equal("*Carl Damico*", response.attachments[0].pretext);
+      Assert.Equal("Support Technician", response.attachments[0].title);
+      Assert.StartsWith("CarlDamico@mail.com", response.attachments[0].text);
     }
   }
 }

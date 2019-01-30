@@ -70,73 +70,7 @@ namespace WhoIs.At.JIS.Controllers
         };
       }
       Task.Run(() => _graphHandler.updateUserCache());
-      return EvaluateSlackCommand(slashCommandPayload);
-    }
-
-    private SlackResponse EvaluateSlackCommand(SlashCommandPayload slashCommandPayload)
-    {
-      SlackResponse response = new SlackResponse();
-      WhoIsCommand command = SlashCommandHandler.getCommandFromString(slashCommandPayload.text);
-      #region Commands without parameters
-      if (command.command.Equals("help") || !SlashCommandHandler.isValidCommand(command.command))
-      {
-        response.text = _slashCommandHandler.getHelpMessage();
-      }
-      else if (command.command.Equals("jobtitlelist"))
-      {
-        response.text = $"_Available job titles:_ {string.Join(", ", _slashCommandHandler.getUniqueValuesForStringProperty("jobTitle"))}";
-      }
-      else if (command.command.EndsWith("list"))
-      {
-        var listType = command.command.Replace("list", "");
-        response.text = $"_Available {listType}:_ {string.Join(", ", _slashCommandHandler.getUniqueValuesForListProperty(listType))}";
-      }
-      if (!string.IsNullOrEmpty(response.text)) return response;
-      #endregion
-
-      #region Commands with required parameters
-      List<GraphUser> users = new List<GraphUser>();
-      if (string.IsNullOrEmpty(command.parameters))
-      {
-        response.text = $"You need to provide a search value: `/whois-at-jis {command.command} <value>`";
-      }
-      else if (command.command.Equals("email"))
-      {
-        var email = command.parameters;
-        var domain = _graphConfiguration["domain"];
-        if (SlashCommandHandler.isValidEmail(email, domain))
-        {
-          users.Add(_slashCommandHandler.getUserWithEmail(email));
-        }
-        else
-        {
-          response.text = $"You must provide a valid email address with the {domain} domain";
-        }
-      }
-      else if (command.command.Equals("name"))
-      {
-        users.AddRange(_slashCommandHandler.getUsersWithStringProperty("displayName", command.parameters));
-      }
-      else if (command.command.Equals("withjobtitle"))
-      {
-        users.AddRange(_slashCommandHandler.getUsersWithStringProperty("jobTitle", command.parameters));
-      }
-      else if (command.command.StartsWith("with"))
-      {
-        var searchType = command.command.Replace("with", "");
-        var plural = $"{searchType}s";
-        users.AddRange(_slashCommandHandler.getUsersWithListProperty(plural, command.parameters));
-      }
-      #endregion
-      if (users.Count.Equals(0))
-      {
-        response.text = $"No matches were found for `/whois-at-jis {command.command} {command.parameters}`";
-      }
-      else
-      {
-        response.attachments = SlashCommandHandler.formatUserListForSlack(users);
-      }
-      return response;
+      return _slashCommandHandler.EvaluateSlackCommand(slashCommandPayload.text);
     }
   }
 }
