@@ -107,7 +107,7 @@ namespace WhoIs.At.JIS.Helpers
 
     public List<string> getUniqueValuesForProperty(SearchProperty property)
     {
-      if (property.propertyType.Equals(PropertyType.String))
+      if (property.PropertyType.Equals(PropertyType.String))
       {
         return getUniqueValuesForStringProperty(property.graphUserProperty, _graphHandler.getCachedUsers());
       }
@@ -144,7 +144,7 @@ namespace WhoIs.At.JIS.Helpers
     public List<GraphUser> getUsersWithProperty(SearchProperty property, string filter, MatchType matchType)
     {
       List<GraphUser> users;
-      if (property.propertyType.Equals(PropertyType.String))
+      if (property.PropertyType.Equals(PropertyType.String))
       {
         users = getUsersWithStringProperty(property.graphUserProperty, filter, matchType, _graphHandler.getCachedUsers());
       }
@@ -188,24 +188,24 @@ namespace WhoIs.At.JIS.Helpers
     {
       SlackResponse response = new SlackResponse();
       WhoIsContext context = TextToIntentParser.getPropertyIntentFromText(text);
-      switch (context.action)
+      switch (context.Action)
       {
         case ActionType.Help:
           response.text = getHelpMessage();
           break;
         case ActionType.List:
-          response.text = $"_Available {context.property.plural}:_ {string.Join(", ", getUniqueValuesForProperty(context.property))}";
+          response.text = $"_Available {context.SearchProperty.Plural}:_ {string.Join(", ", getUniqueValuesForProperty(context.SearchProperty))}";
           break;
         case ActionType.Search:
-          if (context.property.graphUserProperty.Equals(GraphUserProperty.userPrincipalName) && !SlashCommandHandler.isValidEmail(context.filter, _emailDomain))
+          if (context.SearchProperty.graphUserProperty.Equals(GraphUserProperty.userPrincipalName) && !SlashCommandHandler.isValidEmail(context.Filter, _emailDomain))
           {
             response.text = $"You must provide a valid email address with the {_emailDomain} domain";
             break;
           }
-          List<GraphUser> matchingUsers = getUsersWithProperty(context.property, context.filter, context.matchType);
+          List<GraphUser> matchingUsers = getUsersWithProperty(context.SearchProperty, context.Filter, context.MatchType);
           if (matchingUsers.Count.Equals(0))
           {
-            response.text = $"No users were found with {context.property.singular} {context.filter}";
+            response.text = $"No users were found with {context.SearchProperty.Singular} {context.Filter}";
           }
           else
           {

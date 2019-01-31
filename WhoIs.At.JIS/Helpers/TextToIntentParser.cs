@@ -9,45 +9,45 @@ namespace WhoIs.At.JIS.Helpers
     private static List<SearchProperty> AVAILABLE_PROPERTIES = new List<SearchProperty>(){
       new SearchProperty() {
         graphUserProperty = GraphUserProperty.displayName,
-        singular = "name",
-        plural = "names",
-        propertyType = PropertyType.String,
-        tenses = new List<string> {"withname", "displayname", "display name", "name"}
+        Singular = "name",
+        Plural = "names",
+        PropertyType = PropertyType.String,
+        Tenses = new List<string> {"withname", "displayname", "display name", "name"}
       },
       new SearchProperty() {
         graphUserProperty = GraphUserProperty.jobTitle,
-        singular = "job title",
-        plural = "job titles",
-        propertyType = PropertyType.String,
-        tenses = new List<string> {"jobtitle", "job title", "title", "titles", "titled", "job", "joblist", "jobslist", "titlelist", "titleslist", "jobtitlelist", "jobtitleslist", "withjob", "withjobtitle"}
+        Singular = "job title",
+        Plural = "job titles",
+        PropertyType = PropertyType.String,
+        Tenses = new List<string> {"jobtitle", "job title", "title", "titles", "titled", "job", "joblist", "jobslist", "titlelist", "titleslist", "jobtitlelist", "jobtitleslist", "withjob", "withjobtitle"}
       },
       new SearchProperty() {
         graphUserProperty = GraphUserProperty.userPrincipalName,
-        singular = "email",
-        plural = "emails",
-        propertyType = PropertyType.String,
-        tenses = new List<string> {"email", "withemail"}
+        Singular = "email",
+        Plural = "emails",
+        PropertyType = PropertyType.String,
+        Tenses = new List<string> {"email", "withemail"}
       },
       new SearchProperty() {
         graphUserProperty = GraphUserProperty.interests,
-        singular = "interest",
-        plural = "interests",
-        propertyType = PropertyType.List,
-        tenses = new List<string> {"interest", "interests", "interested", "likes", "withinterest", "interestslist", "interestlist"}
+        Singular = "interest",
+        Plural = "interests",
+        PropertyType = PropertyType.List,
+        Tenses = new List<string> {"interest", "interests", "interested", "likes", "withinterest", "interestslist", "interestlist"}
       },
       new SearchProperty() {
         graphUserProperty = GraphUserProperty.skills,
-        singular = "skill",
-        plural = "skills",
-        propertyType = PropertyType.List,
-        tenses = new List<string> {"skill", "skills", "skilled", "withskill", "skilllist", "skillslist"}
+        Singular = "skill",
+        Plural = "skills",
+        PropertyType = PropertyType.List,
+        Tenses = new List<string> {"skill", "skills", "skilled", "withskill", "skilllist", "skillslist"}
       },
       new SearchProperty() {
         graphUserProperty = GraphUserProperty.projects,
-        singular = "project",
-        plural = "projects",
-        propertyType = PropertyType.List,
-        tenses = new List<string> {"project", "projects", "work on", "works on", "worked on", "withproject", "projectslist", "projectlist"}
+        Singular = "project",
+        Plural = "projects",
+        PropertyType = PropertyType.List,
+        Tenses = new List<string> {"project", "projects", "work on", "works on", "worked on", "withproject", "projectslist", "projectlist"}
       }
     };
 
@@ -56,32 +56,31 @@ namespace WhoIs.At.JIS.Helpers
       text = text.Trim();
       var context = new WhoIsContext
       {
-        property = null
+        SearchProperty = null
       };
       if (string.IsNullOrEmpty(text) || text.Equals(ActionType.Help.ToString(), System.StringComparison.InvariantCultureIgnoreCase))
       {
-        context.action = ActionType.Help;
+        context.Action = ActionType.Help;
       }
       else
       {
-        string foundTense = null;
         foreach (var property in AVAILABLE_PROPERTIES)
         {
-          foreach (var tense in property.tenses)
+          foreach (var tense in property.Tenses)
           {
             if (Regex.IsMatch(text, $"\\b{tense}\\b", RegexOptions.IgnoreCase))
             {
-              foundTense = tense;
-              context.property = property;
+              context.SearchProperty = property;
+              context.SearchProperty.FoundTense = tense;
               break;
             }
           }
-          if (context.property != null)
+          if (context.SearchProperty != null)
           {
             break;
           }
         }
-        if (context.property == null)
+        if (context.SearchProperty == null)
         {
           if (SlashCommandHandler.isValidEmail(text, null))
           {
@@ -92,23 +91,23 @@ namespace WhoIs.At.JIS.Helpers
         }
         else
         {
-          if (context.property.Equals(GraphUserProperty.userPrincipalName))
+          if (context.SearchProperty.Equals(GraphUserProperty.userPrincipalName))
           {
-            context.matchType = MatchType.Equals;
+            context.MatchType = MatchType.Equals;
           }
           else
           {
-            context.matchType = MatchType.Contains;
+            context.MatchType = MatchType.Contains;
           }
-          context.text = removeNoiseAroundWords(text, foundTense);
-          context.filter = Regex.Replace(context.text, $"\\b{foundTense}\\b", "", RegexOptions.IgnoreCase).Trim();
-          if (string.IsNullOrEmpty(context.filter) || context.filter.Equals("list", System.StringComparison.InvariantCultureIgnoreCase))
+          context.Text = removeNoiseAroundWords(text, context.SearchProperty.FoundTense);
+          context.Filter = Regex.Replace(context.Text, $"\\b{context.SearchProperty.FoundTense}\\b", "", RegexOptions.IgnoreCase).Trim();
+          if (string.IsNullOrEmpty(context.Filter) || context.Filter.Equals("list", System.StringComparison.InvariantCultureIgnoreCase))
           {
-            context.action = ActionType.List;
+            context.Action = ActionType.List;
           }
           else
           {
-            context.action = ActionType.Search;
+            context.Action = ActionType.Search;
           }
         }
       }

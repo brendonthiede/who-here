@@ -19,10 +19,10 @@ namespace WhoIs.At.JIS.Models
 
   public class WhoIsContext
   {
-    public string text { get; set; }
-    public SearchProperty property { get; set; }
-    public ActionType action { get; set; }
-    public MatchType matchType { get; set; }
-    public string filter { get; set; }
+    public string Text { get; set; }
+    public SearchProperty SearchProperty { get; set; }
+    public ActionType Action { get; set; }
+    public MatchType MatchType { get; set; }
+    public string Filter { get; set; }
   }
 }
