@@ -11,20 +11,20 @@ namespace WhoIs.At.JIS.Helpers
   {
     #region Private Properties and Constants
     private readonly GraphHandler _graphHandler;
-    private readonly string _emailDomain;
     private readonly IConfiguration _slackConfiguration;
+    public string EmailDomain { get; set; }
     #endregion
 
     public SlashCommandHandler(IConfiguration configuration)
     {
       try
       {
-        _emailDomain = configuration.GetSection("graph")["domain"];
+        EmailDomain = configuration.GetSection("graph")["domain"];
         _slackConfiguration = configuration.GetSection("slack");
       }
       catch (System.NullReferenceException)
       {
-        _emailDomain = null;
+        EmailDomain = null;
         _slackConfiguration = null;
       }
       _graphHandler = new GraphHandler(configuration);
@@ -99,7 +99,7 @@ namespace WhoIs.At.JIS.Helpers
     {
       return @"Available commands:
   `help`: shows this message"
-  + $"\n  `email <email@{_emailDomain}>`: shows information for the given email address\n"
+  + $"\n  `email <email@{EmailDomain}>`: shows information for the given email address\n"
   + @"  `name <search text>`: shows matches where the display name (formatted as <first> <last>) starts with the search text
   Other available properties that you can search on: `job title`, `interests`, `skills`, `projects`
 >Make sure your profile is up to date at https://delve-gcc.office.com";
@@ -197,9 +197,9 @@ namespace WhoIs.At.JIS.Helpers
           response.text = $"_Available {context.SearchProperty.Plural}:_ {string.Join(", ", getUniqueValuesForProperty(context.SearchProperty))}";
           break;
         case ActionType.Search:
-          if (context.SearchProperty.graphUserProperty.Equals(GraphUserProperty.userPrincipalName) && !SlashCommandHandler.isValidEmail(context.Filter, _emailDomain))
+          if (context.SearchProperty.graphUserProperty.Equals(GraphUserProperty.userPrincipalName) && !SlashCommandHandler.isValidEmail(context.Filter, EmailDomain))
           {
-            response.text = $"You must provide a valid email address with the {_emailDomain} domain";
+            response.text = $"You must provide a valid email address with the {EmailDomain} domain";
             break;
           }
           List<GraphUser> matchingUsers = getUsersWithProperty(context.SearchProperty, context.Filter, context.MatchType);

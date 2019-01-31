@@ -19,7 +19,7 @@ namespace WhoIs.At.JIS.Helpers
         Singular = "job title",
         Plural = "job titles",
         PropertyType = PropertyType.String,
-        Tenses = new List<string> {"jobtitle", "job title", "title", "titles", "titled", "job", "joblist", "jobslist", "titlelist", "titleslist", "jobtitlelist", "jobtitleslist", "withjob", "withjobtitle"}
+        Tenses = new List<string> {"jobtitle", "job title", "title", "titles", "titled", "job", "jobs", "joblist", "jobslist", "titlelist", "titleslist", "jobtitlelist", "jobtitleslist", "withjob", "withjobtitle"}
       },
       new SearchProperty {
         graphUserProperty = GraphUserProperty.userPrincipalName,
