@@ -20,6 +20,7 @@ namespace WhoIs.At.JIS.Models
   public class WhoIsContext
   {
     public string Text { get; set; }
+    public string FoundTense { get; set; }
     public SearchProperty SearchProperty { get; set; }
     public ActionType Action { get; set; }
     public MatchType MatchType { get; set; }

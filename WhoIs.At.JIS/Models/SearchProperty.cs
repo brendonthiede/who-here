@@ -22,7 +22,6 @@ namespace WhoIs.At.JIS.Models
   public class SearchProperty
   {
     public GraphUserProperty graphUserProperty { get; set; }
-    public string FoundTense { get; set; }
     public string Singular { get; set; }
     public PropertyType PropertyType { get; set; }
     public string Plural { get; set; }

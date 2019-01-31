@@ -61,7 +61,7 @@ namespace WhoIs.At.JIS.Tests
     [Fact]
     public void TestContextForEmail()
     {
-      var whoIsContext = TextToIntentParser.getPropertyIntentFromText("has email as mail@mail.com");
+      var whoIsContext = TextToIntentParser.getPropertyIntentFromText("has an email of mail@mail.com");
       Assert.Equal(PropertyType.String, whoIsContext.SearchProperty.PropertyType);
       Assert.Equal(GraphUserProperty.userPrincipalName, whoIsContext.SearchProperty.graphUserProperty);
       Assert.Equal("mail@mail.com", whoIsContext.Filter);
