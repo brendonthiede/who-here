@@ -74,7 +74,13 @@ namespace WhoIs.At.JIS.Tests
       Assert.Equal("*Clyde Reynolds*", response.attachments[0].pretext);
       Assert.StartsWith("ClydeReynolds@mail.com", response.attachments[0].text);
       Assert.Equal("*Larry Gonzalez*", response.attachments[1].pretext);
+
       response = slashCommandHandler.EvaluateSlackCommand("likes to run");
+      Assert.Equal(2, response.attachments.Count);
+      Assert.Equal("*Clyde Reynolds*", response.attachments[0].pretext);
+      Assert.StartsWith("LarryGonzalez@mail.com", response.attachments[1].text);
+
+      response = slashCommandHandler.EvaluateSlackCommand("has an interest in running");
       Assert.Equal(2, response.attachments.Count);
       Assert.Equal("*Clyde Reynolds*", response.attachments[0].pretext);
       Assert.StartsWith("LarryGonzalez@mail.com", response.attachments[1].text);
