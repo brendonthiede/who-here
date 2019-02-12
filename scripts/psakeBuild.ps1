@@ -9,7 +9,6 @@ $appProject = "$PSScriptRoot\..\WhoHere\WhoHere.csproj"
 $testProject = "$PSScriptRoot\..\WhoHere.Tests\WhoHere.Tests.csproj"
 $distFolder = "$PSScriptRoot\..\dist"
 $zipName = "WhoHere.zip"
-$armParametersFile = "$PSScriptRoot\who-here.parameters.json"
 
 # Default task to run
 task default -depends Publish
@@ -50,7 +49,7 @@ task Publish -depends Test {
 }
 
 task DeployInfrastructure {
-  Exec { & "$PSScriptRoot\New-ARMTemplateDeployment.ps1" -Location $Location -ResourceGroupName $ResourceGroupName -ParametersFile "$armParametersFile" }
+  Exec { & "$PSScriptRoot\New-ARMTemplateDeployment.ps1" -Location $Location -ResourceGroupName $ResourceGroupName }
 }
 
 task DeployWebApp -depends Publish {
