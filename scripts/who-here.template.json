@@ -38,14 +38,14 @@
       }
     },
     "graphApplicationId": {
-      "type": "string",
+      "type": "securestring",
       "metadata": {
         "purpose": "Application settings",
         "description": "The application ID of the App registration created for connecting to Microsoft Graph."
       }
     },
     "graphApplicationSecret": {
-      "type": "string",
+      "type": "securestring",
       "metadata": {
         "purpose": "Application settings",
         "description": "The Client Secret used to get an Azure AD token for the App registration."
@@ -67,7 +67,7 @@
       }
     },
     "graphTenantId": {
-      "type": "string",
+      "type": "securestring",
       "defaultValue": "[subscription().tenantId]",
       "metadata": {
         "purpose": "Application settings",
@@ -75,7 +75,7 @@
       }
     },
     "slackSlashCommandToken": {
-      "type": "string",
+      "type": "securestring",
       "metadata": {
         "purpose": "Application settings",
         "description": "The API token that was generated for the Slash Command in Slack"

@@ -26,9 +26,6 @@
     "graphRedirectUri": {
       "value": "https://localhost:5001"
     },
-    "graphTenantId": {
-      "value": "[subscription().tenantId]"
-    },
     "slackSlashCommandToken": {
       "value": "CLIENT_SECRET_HERE"
     }
