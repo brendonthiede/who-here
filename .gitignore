@@ -6,3 +6,4 @@ snapShot.json
 *.coverage
 dist/
 TestResults/
+who-here.parameters.json

@@ -60,7 +60,7 @@
     },
     "graphRedirectUri": {
       "type": "string",
-      "defaultValue": "https://localhost:8080",
+      "defaultValue": "https://localhost:5001",
       "metadata": {
         "purpose": "Application settings",
         "description": "The redirect URI configured for the App registration"

@@ -7,28 +7,36 @@ param(
   [string]
   $Location = 'East US',
 
-  [Parameter(Mandatory = $True)]
+  [Parameter(Mandatory = $False)]
+  [string]
+  $ResourceGroupName = 'who-here-rg',
+
+  [Parameter(ParameterSetName = 'ParametersFileOptions', Mandatory = $True)]
+  [string]
+  $ParametersFile,
+
+  [Parameter(ParameterSetName = 'CommandLineOptions', Mandatory = $True)]
   [string]
   $WebAppName,
 
-  [Parameter(Mandatory = $False)]
+  [Parameter(ParameterSetName = 'CommandLineOptions', Mandatory = $False)]
   [ValidateSet("F1 Free", "S1 Standard")]
   [string]
   $Sku = "F1 Free",
 
-  [Parameter(Mandatory = $True)]
+  [Parameter(ParameterSetName = 'CommandLineOptions', Mandatory = $True)]
   [string]
   $GraphDomain,
 
-  [Parameter(Mandatory = $True)]
+  [Parameter(ParameterSetName = 'CommandLineOptions', Mandatory = $True)]
   [string]
   $GraphApplicationId,
 
-  [Parameter(Mandatory = $True)]
+  [Parameter(ParameterSetName = 'CommandLineOptions', Mandatory = $True)]
   [string]
   $GraphApplicationSecret,
 
-  [Parameter(Mandatory = $True)]
+  [Parameter(ParameterSetName = 'CommandLineOptions', Mandatory = $True)]
   [string]
   $SlackSlashCommandToken,
 
@@ -36,37 +44,33 @@ param(
   $TestOnly
 )
 
-Push-Location
-Set-Location $PSScriptRoot
+$templateFile = "$PSScriptRoot\who-here.template.json"
 
-$applicationName = "who-here"
-$resourceGroupName = "$applicationName-rg"
-$templateFile = ".\$applicationName.template.json"
-
-Write-Verbose "Deployment configuration:`n  applicationName: $applicationName`n  resourceGroupName: $resourceGroupName`n  templateFile: $templateFile"
+Write-Verbose "Deployment configuration:`n  resourceGroupName: $ResourceGroupName`n  templateFile: $templateFile`n  ParametersFile: $ParametersFile"
 
 Write-Verbose "Initializing Resource Group"
-$resourceGroup = Get-AzureRmResourceGroup -Name $resourceGroupName -ErrorAction SilentlyContinue
+$resourceGroup = Get-AzureRmResourceGroup -Name $ResourceGroupName -ErrorAction SilentlyContinue
 if (!$resourceGroup) {
-  New-AzureRmResourceGroup -Name $resourceGroupName -Location $location -Tags $tags
+  New-AzureRmResourceGroup -Name $ResourceGroupName -Location $location -Tags $tags
 }
 
 if ($TestOnly) {
-  Write-Verbose "Testing ARM template"
-  Test-AzureRmResourceGroupDeployment `
-    -ResourceGroupName "$resourceGroupName" `
-    -TemplateFile $templateFile `
-    -webAppName $WebAppName `
-    -sku $Sku `
-    -graphDomain $GraphDomain `
-    -graphApplicationId $GraphApplicationId `
-    -graphApplicationSecret $GraphApplicationSecret `
-    -slackSlashCommandToken $SlackSlashCommandToken
+  $ARMCommand = "Test-AzureRmResourceGroupDeployment"
 }
 else {
-  Write-Verbose "Deploying ARM template"
-  $outputs = (New-AzureRmResourceGroupDeployment `
-      -ResourceGroupName "$resourceGroupName" `
+  $ARMCommand = "New-AzureRmResourceGroupDeployment"
+}
+
+switch ($PsCmdlet.ParameterSetName) {
+  "ParametersFileOptions" {
+    & $ARMCommand `
+      -ResourceGroupName "$ResourceGroupName" `
+      -TemplateFile $templateFile `
+      -TemplateParameterFile $ParametersFile
+  }
+  "CommandLineOptions" {
+    & $ARMCommand `
+      -ResourceGroupName "$ResourceGroupName" `
       -TemplateFile $templateFile `
       -webAppName $WebAppName `
       -sku $Sku `
@@ -74,8 +78,5 @@ else {
       -graphApplicationId $GraphApplicationId `
       -graphApplicationSecret $GraphApplicationSecret `
       -slackSlashCommandToken $SlackSlashCommandToken
-  ).Outputs
-  Write-Verbose "ARM template deployment is complete"
+  }
 }
-
-Pop-Location

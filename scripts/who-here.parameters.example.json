@@ -1,0 +1,36 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "webAppName": {
+      "value": "[concat('who-here-', uniqueString(resourceGroup().id))]"
+    },
+    "hostingPlanName": {
+      "value": "who-here-asplan"
+    },
+    "sku": {
+      "value": "F1 Free"
+    },
+    "aspNetCoreEnvironment": {
+      "value": "Development"
+    },
+    "graphApplicationId": {
+      "value": "APPLICATION_ID_HERE"
+    },
+    "graphApplicationSecret": {
+      "value": "CLIENT_SECRET_HERE"
+    },
+    "graphDomain": {
+      "value": "mail.domain.com"
+    },
+    "graphRedirectUri": {
+      "value": "https://localhost:5001"
+    },
+    "graphTenantId": {
+      "value": "[subscription().tenantId]"
+    },
+    "slackSlashCommandToken": {
+      "value": "CLIENT_SECRET_HERE"
+    }
+  }
+}

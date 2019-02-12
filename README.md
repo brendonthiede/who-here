@@ -10,7 +10,7 @@ The app is a .NET Core Web API, intended for use with Slack as a Slash Command. 
 
 ## Creating an App Registry
 
-you will need to create an App Registration to be used as a App registration to connect to Microsoft Graph. There are some instructions here: [ASP.NET Graph Example](https://docs.microsoft.com/en-us/graph/tutorials/aspnet?tutorial-step=2). When creating the app registration, keep track of the Application ID and the redirect Uri that you chose (it can just be https://localhost:8080 or anything else you choose). You will also need to generate a client secret and keep track of that.
+You will need to create an App Registration to be used as a App registration to connect to Microsoft Graph. Generally speaking, it's a good idea to have one App registration per environment. There are some instructions here: [ASP.NET Graph Example](https://docs.microsoft.com/en-us/graph/tutorials/aspnet?tutorial-step=2). When creating the app registration, keep track of the Application ID and the redirect Uri that you chose (it can just be https://localhost:5001 or anything else you choose, since it won't actually be used). You will also need to generate a client secret and keep track of that.
 
 ## Running Unit Tests
 
@@ -30,7 +30,7 @@ In order to run locally, you will need to create a file named `appsettings.json`
     "applicationId": "ID_FROM_AZURE_ACTIVE_DIRECTORY",
     "applicationSecret": "CLIENT_SECRET_FROM_AZURE_ACTIVE_DIRECTORY",
     "tenantId": "TENANT_ID_OF_AZURE_ACTIVE_DIRECTORY",
-    "redirectUri": "https://localhost:8080",
+    "redirectUri": "https://localhost:5001",
     "domain": "my.mail.com"
   },
   "slack": {
@@ -41,13 +41,31 @@ In order to run locally, you will need to create a file named `appsettings.json`
 
 The value of the `slashCommandToken` doesn't matter locally, but you just need to match it in Postman or whatever you use to hot your local endpoint.
 
-Now you can run the unit tests
+Now you can run the app locally either using your IDE (e.g. pressing F5 in VS Code and many other IDEs) or by running PSake:
+
+```powershell
+.\scripts\build.ps1 -Task Run
+```
 
 ## Deploying
 
 You should set up the Slash Command in Slack (instructions [here](https://api.slack.com/slash-commands)). You can guess at the URL for the application for now and you can go back and update it later, but for now just grab the "Verification Token" shown under the App Credentials configured for the Slash Command.
 
-Now you can deploy the infrastructure via the ARM template. This can be done through `New-ARMTemplateDeployment.ps1` in the scripts directory, passing the necessary parameters, ensuring that your `webAppName` is unique.
+Now you can deploy the infrastructure via the ARM template. This can be done through `New-ARMTemplateDeployment.ps1` in the scripts directory, either passing the necessary options to the command line or by specifying a parameters file, ensuring that your `webAppName` is unique. If you use a parameters file, you should copy `who-here.parameters.example.json` to `who-here.parameters.json` and place the appropriate values in the parameters file, which would let you deploy the infrastructure like this:
+
+```powershell
+.\scripts\New-ARMTemplateDeployment.ps1 -Location "East US" -ParametersFile .\scripts\who-here.parameters.json
+```
+
+If you don't name your parameters file `who-here.parameters.json`, just make sure you don't put the file in source control with any of the secrets in it.
+
+With the infrastructure deployed, you can deploy the web app artifacts like this:
+
+```powershell
+.\scripts\build.ps1 -Task DeployWebApp -Configuration Release
+```
+
+If you have more than one web app deployed in the same resource group, you will need to specify the `WebAppName` parameter as well.
 
 ## Usage
 
