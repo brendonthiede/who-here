@@ -8,7 +8,11 @@ The _Who Here_ app was created of a "Hack Day". The problem statement was that t
 
 ## Technology
 
-The app is a .NET Core Web API, intended for use with Slack as a Slash Command. It uses the Microsoft Graph API to pull user profiles from Office 365.
+The app is a .NET Core Web API, intended for use with Slack as a Slash Command. It uses the Microsoft Graph API to pull user profiles from Office 365. For managing the application life cycle, there is also a PSake script to manage tasks like testing, publishing, and deploying.
+
+## Text Parsing Strategy
+
+There are many services, in particular [Microsoft's LUIS](https://docs.microsoft.com/en-us/azure/cognitive-services/luis/), that can help with providing an understanding of the intents and entities within text, however, I wanted to try it manually. The code is in `TextToIntentParser.cs` and mainly has a strategy of looking for a "property" or one of it's tenses or aliases, removes any "noise" words (as, is, are, to...) either directly before or after the property, and then assumes anything else is the search text to look for in the known values of the property.
 
 ## Creating an App Registry
 
@@ -49,17 +53,19 @@ Now you can run the app locally either using your IDE (e.g. pressing F5 in VS Co
 .\scripts\build.ps1 -Task Run
 ```
 
-## Deploying
+## Deploying From Your Machine
 
 You should set up the Slash Command in Slack (instructions [here](https://api.slack.com/slash-commands)). You can guess at the URL for the application for now and you can go back and update it later, but for now just grab the "Verification Token" shown under the App Credentials configured for the Slash Command.
 
-Now you can deploy the infrastructure via the ARM template. This can be done through `New-ARMTemplateDeployment.ps1` in the scripts directory, either passing the necessary options to the command line or by specifying a parameters file, ensuring that your `webAppName` is unique. If you use a parameters file, you should copy `who-here.parameters.example.json` to `who-here.parameters.json` and place the appropriate values in the parameters file, which would let you deploy the infrastructure like this:
+Now you can deploy the infrastructure via the ARM template. To start with, you should copy `who-here.parameters.example.json` to `who-here.parameters.json` and place the appropriate values in the parameters file. Note that the webAppName will need to be unique across all Azure Websites, since the same name will produce the same URL. You can mitigate this using the `uniqueString` template function in your ARM template, which will create a consistent value that is unique within the given context, which makes it unlikely that someone else would use the same exact name, and you won't step on your own toes if you deploy multiple environments (as long as you keep them in separate resource groups). Now you can deploy the infrastructure like this:
 
 ```powershell
-.\scripts\New-ARMTemplateDeployment.ps1 -Location "East US" -ParametersFile .\scripts\who-here.parameters.json
+.\scripts\build.ps1 -Task DeployInfrastructure
 ```
 
-If you don't name your parameters file `who-here.parameters.json`, just make sure you don't put the file in source control with any of the secrets in it.
+_Make sure you don't put the parameters file in source control with any of the secrets in it!!!_
+
+For more fine-grained control over the ARM template deployment you can run the included `New-ARMTemplateDeployment.ps1` script, or just directly call `New-AzureRmResourceGroupDeployment` (you will have to make sure the target resource group exists first).
 
 With the infrastructure deployed, you can deploy the web app artifacts like this:
 
@@ -68,6 +74,19 @@ With the infrastructure deployed, you can deploy the web app artifacts like this
 ```
 
 If you have more than one web app deployed in the same resource group, you will need to specify the `WebAppName` parameter as well.
+
+## Deployment Pipeline
+
+Rather than deploying from your machine, you should allow a CI/CD pipeline to handle the deployment. A basic pipeline would have a build that produces a deployable artifact that would be deployed by release stages, like this:
+
+* Code push triggers build
+  * Run unit tests: `.\scripts\build.ps1 -Task Test`
+  * Generate deployable: `.\scripts\build.ps1 -Task Publish -Configuration Release`
+  * Save `.\dist\WhoHere.zip` and `.\scripts\` as artifacts to pass along to the release stages
+* Successful build triggers first release stage (Dev, Test, Demo, or whatever you call it)
+  * Deploy infrastructure by using `who-here.template.json`
+  * Deploy the zip file to the web app
+* Criteria for triggering next release stage...
 
 ## Usage
 
