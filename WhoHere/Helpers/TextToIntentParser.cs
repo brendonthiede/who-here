@@ -53,7 +53,7 @@ namespace WhoHere.Helpers
 
     public static WhoIsContext getPropertyIntentFromText(string text)
     {
-      text = text.Trim();
+      text = removeTrailingPunctuation(text.Trim());
       var context = new WhoIsContext
       {
         Text = text,
@@ -143,6 +143,11 @@ namespace WhoHere.Helpers
         }
       } while (updated);
       return finalText.Trim();
+    }
+
+    public static string removeTrailingPunctuation(string originalText)
+    {
+      return Regex.Replace(originalText, $"[?!]$", "", RegexOptions.IgnoreCase);
     }
   }
 }

@@ -87,5 +87,14 @@ namespace WhoHere.Tests
       Assert.Equal("Don Juan", whoIsContext.Filter);
       Assert.Equal(ActionType.Search, whoIsContext.Action);
     }
+
+    [Fact]
+    public void TestRemoveTrailingPunctuation()
+    {
+      Assert.Equal("", TextToIntentParser.removeTrailingPunctuation("?"));
+      Assert.Equal("Hey", TextToIntentParser.removeTrailingPunctuation("Hey!"));
+      Assert.Equal("Hello.World.", TextToIntentParser.removeTrailingPunctuation("Hello.World."));
+      Assert.Equal("Hello.World", TextToIntentParser.removeTrailingPunctuation("Hello.World"));
+    }
   }
 }
