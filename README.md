@@ -12,6 +12,14 @@ The app is a .NET Core Web API, intended for use with Slack as a Slash Command. 
 
 you will need to create an App Registration to be used as a App registration to connect to Microsoft Graph. There are some instructions here: [ASP.NET Graph Example](https://docs.microsoft.com/en-us/graph/tutorials/aspnet?tutorial-step=2). When creating the app registration, keep track of the Application ID and the redirect Uri that you chose (it can just be https://localhost:8080 or anything else you choose). You will also need to generate a client secret and keep track of that.
 
+## Running Unit Tests
+
+You can run unit tests by running `dotnet test` against the test csproj directly, or by using PSake:
+
+```powershell
+.\scripts\build.ps1 -Task Test
+```
+
 ## Running Locally
 
 In order to run locally, you will need to create a file named `appsettings.json` with contents like this:
@@ -32,6 +40,8 @@ In order to run locally, you will need to create a file named `appsettings.json`
 ```
 
 The value of the `slashCommandToken` doesn't matter locally, but you just need to match it in Postman or whatever you use to hot your local endpoint.
+
+Now you can run the unit tests
 
 ## Deploying
 

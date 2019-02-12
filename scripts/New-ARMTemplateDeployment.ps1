@@ -1,3 +1,5 @@
+#Requires -Modules @{ ModuleName="AzureRM.Resources"; ModuleVersion="5.0.0" }
+
 [CmdletBinding()]
 
 param(
