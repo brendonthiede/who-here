@@ -1,5 +1,7 @@
 # Who Here
 
+![Slack Screenshot](_attachments/slack-screenshot.jpg "Slack Screenshot")
+
 ## Purpose
 
 The _Who Here_ app was created of a "Hack Day". The problem statement was that there are many people around the office that you don't know, but may have similar interests. Rather than try to come up with a separate CRUD application for people to enter their data, we decided to leverage the information that was already available from SharePoint, which we discovered is exposed by the Microsoft Graph API.
