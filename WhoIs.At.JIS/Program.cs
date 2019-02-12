@@ -16,9 +16,11 @@ namespace WhoIs.At.JIS
         WebHost.CreateDefaultBuilder(args)
           .ConfigureAppConfiguration((hostingContext, config) =>
           {
+            var env = hostingContext.HostingEnvironment;
+            config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                  .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: true);
             config.AddEnvironmentVariables();
             config.SetBasePath(Directory.GetCurrentDirectory());
-            config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: false);
           })
           .UseStartup<Startup>();
   }
