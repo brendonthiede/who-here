@@ -17,7 +17,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "WhoIs.At.JIS": {
+    "WhoHere": {
       "commandName": "Project",
       "launchBrowser": true,
       "launchUrl": "api/values",

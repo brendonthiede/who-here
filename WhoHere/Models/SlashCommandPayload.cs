@@ -1,4 +1,4 @@
-namespace WhoIs.At.JIS.Models
+namespace WhoHere.Models
 {
   public class SlashCommandPayload
   {

@@ -1,7 +1,7 @@
-using WhoIs.At.JIS.Helpers;
+using WhoHere.Helpers;
 using Xunit;
 
-namespace WhoIs.At.JIS.Tests
+namespace WhoHere.Tests
 {
   public class SlashCommandHandlerTest
   {

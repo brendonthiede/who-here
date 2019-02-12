@@ -10,9 +10,9 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/WhoIs.At.JIS/bin/Debug/netcoreapp2.1/WhoIs.At.JIS.dll",
+            "program": "${workspaceFolder}/WhoHere/bin/Debug/netcoreapp2.1/WhoHere.dll",
             "args": [],
-            "cwd": "${workspaceFolder}/WhoIs.At.JIS",
+            "cwd": "${workspaceFolder}/WhoHere",
             "stopAtEntry": false,
             "internalConsoleOptions": "openOnSessionStart",
             "launchBrowser": {

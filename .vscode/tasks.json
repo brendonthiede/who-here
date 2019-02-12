@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/WhoIs.At.JIS/WhoIs.At.JIS.csproj"
+                "${workspaceFolder}/WhoHere/WhoHere.csproj"
             ],
             "problemMatcher": "$msCompile"
         }

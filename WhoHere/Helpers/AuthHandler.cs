@@ -3,7 +3,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace WhoIs.At.JIS.Helpers
+namespace WhoHere.Helpers
 {
   public class AuthHandler : DelegatingHandler
   {

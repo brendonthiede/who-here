@@ -1,8 +1,8 @@
-using WhoIs.At.JIS.Helpers;
-using WhoIs.At.JIS.Models;
+using WhoHere.Helpers;
+using WhoHere.Models;
 using Xunit;
 
-namespace WhoIs.At.JIS.Tests
+namespace WhoHere.Tests
 {
   public class TextToIntentParserTest
   {

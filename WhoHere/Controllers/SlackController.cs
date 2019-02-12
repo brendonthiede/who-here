@@ -3,10 +3,10 @@ using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using WhoIs.At.JIS.Helpers;
-using WhoIs.At.JIS.Models;
+using WhoHere.Helpers;
+using WhoHere.Models;
 
-namespace WhoIs.At.JIS.Controllers
+namespace WhoHere.Controllers
 {
   [Route("api/[controller]")]
   [ApiController]

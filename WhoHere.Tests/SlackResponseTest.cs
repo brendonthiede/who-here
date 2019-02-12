@@ -1,7 +1,7 @@
-using WhoIs.At.JIS.Models;
+using WhoHere.Models;
 using Xunit;
 
-namespace WhoIs.At.JIS.Tests
+namespace WhoHere.Tests
 {
   public class SlackResponseTest
   {

@@ -2,9 +2,9 @@ using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using WhoIs.At.JIS.Models;
+using WhoHere.Models;
 
-namespace WhoIs.At.JIS.Helpers
+namespace WhoHere.Helpers
 {
 
   public class SlashCommandHandler

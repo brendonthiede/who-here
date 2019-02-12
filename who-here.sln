@@ -3,9 +3,16 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26124.0
 MinimumVisualStudioVersion = 15.0.26124.0
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WhoIs.At.JIS", "WhoIs.At.JIS\WhoIs.At.JIS.csproj", "{1AAFB570-C32D-48AC-8B6D-81E2841E5B8F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WhoHere", "WhoHere\WhoHere.csproj", "{1AAFB570-C32D-48AC-8B6D-81E2841E5B8F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WhoIs.At.JIS.Tests", "WhoIs.At.JIS.Tests\WhoIs.At.JIS.Tests.csproj", "{4AC6BC51-2E67-4003-8AAB-40A3E312EF35}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WhoHere.Tests", "WhoHere.Tests\WhoHere.Tests.csproj", "{4AC6BC51-2E67-4003-8AAB-40A3E312EF35}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{4E919385-AA2D-4C0D-B6BC-F49F2FFAF73F}"
+	ProjectSection(SolutionItems) = preProject
+		scripts\New-ApplicationDeployment.ps1 = scripts\New-ApplicationDeployment.ps1
+		scripts\New-ARMTemplateDeployment.ps1 = scripts\New-ARMTemplateDeployment.ps1
+		scripts\who-here.template.json = scripts\who-here.template.json
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,9 +22,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{1AAFB570-C32D-48AC-8B6D-81E2841E5B8F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -44,5 +48,11 @@ Global
 		{4AC6BC51-2E67-4003-8AAB-40A3E312EF35}.Release|x64.Build.0 = Release|Any CPU
 		{4AC6BC51-2E67-4003-8AAB-40A3E312EF35}.Release|x86.ActiveCfg = Release|Any CPU
 		{4AC6BC51-2E67-4003-8AAB-40A3E312EF35}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {2E29C52F-C71A-4F66-94D7-144A200CFAFC}
 	EndGlobalSection
 EndGlobal

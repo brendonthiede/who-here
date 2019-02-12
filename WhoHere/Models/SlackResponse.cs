@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace WhoIs.At.JIS.Models
+namespace WhoHere.Models
 {
   public class SlackResponse
   {

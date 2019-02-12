@@ -7,9 +7,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
-using WhoIs.At.JIS.Models;
+using WhoHere.Models;
 
-namespace WhoIs.At.JIS.Helpers
+namespace WhoHere.Helpers
 {
   public class GraphHandler
   {

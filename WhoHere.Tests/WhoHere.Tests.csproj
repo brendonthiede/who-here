@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\WhoIs.At.JIS\WhoIs.At.JIS.csproj" />
+    <ProjectReference Include="..\WhoHere\WhoHere.csproj" />
   </ItemGroup>
 
 </Project>

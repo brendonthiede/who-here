@@ -4,7 +4,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
-namespace WhoIs.At.JIS.Helpers
+namespace WhoHere.Helpers
 {
   public class MsalAuthenticationProvider : IAuthenticationProvider
   {

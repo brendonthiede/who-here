@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using System.IO;
 
-namespace WhoIs.At.JIS
+namespace WhoHere
 {
   public class Program
   {

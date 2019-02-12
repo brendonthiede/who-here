@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using WhoIs.At.JIS.Models;
+using WhoHere.Models;
 
-namespace WhoIs.At.JIS.Helpers
+namespace WhoHere.Helpers
 {
   public class TextToIntentParser
   {
